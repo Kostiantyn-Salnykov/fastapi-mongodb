@@ -1,0 +1,25 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+fastapi = "*"
+orjson = "*"
+uvicorn = "*"
+pydantic = {extras = ["email"],version = "*"}
+typer = "*"
+motor = "*"
+ipython = "*"
+pymongo = "*"
+dnspython = "*"
+black = "*"
+pyjwt = "*"
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true
