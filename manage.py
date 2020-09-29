@@ -49,7 +49,7 @@ async def creteapp():
             file_name="config.py",
             path=[app_name],
             content=f"""import pydantic
-from functools import lru_cache
+import functools
 
 
 __all__ = ["{app_name}_settings"]
@@ -59,7 +59,7 @@ class {capitalized_app_name}Settings(pydantic.BaseSettings):
     {upper_app_name}_COL: str = pydantic.Field(default="{app_name}")
 
 
-@lru_cache()
+@functools.lru_cache()
 def get_settings() -> {capitalized_app_name}Settings:
     return {capitalized_app_name}Settings()
 
@@ -107,8 +107,8 @@ async def setup():
             new_app_dir.mkdir()
 
         if not new_file_path.exists():
-            with open(file=new_file_path, mode="w") as f:
-                f.write(file.content)
+            with open(file=new_file_path, mode="w") as write_file:
+                write_file.write(file.content)
 
     typer.secho(message=f"Application {app_name} has been created.", fg=typer.colors.GREEN)
 

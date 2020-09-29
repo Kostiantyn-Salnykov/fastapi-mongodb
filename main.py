@@ -1,8 +1,12 @@
+import logging
+
+import click
 from fastapi import FastAPI, responses, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 from apps.common.db import create_mongo_connection, close_mongo_connection
+from apps.common.logging import MainFormatter
 from apps.common.middlewares import MongoSessionMiddleware, ExceptionsMiddleware
 from apps.users.backends import JWTTokenBackend
 from apps.users.routers import users_router, login_router
@@ -13,7 +17,7 @@ __all__ = ["app"]
 app = FastAPI(
     version="0.0.1",
     debug=settings.DEBUG,
-    title="Quick start FastAPI",
+    title=settings.PROJECT_NAME,
     description="Quick start FastAPI project template",
     default_response_class=responses.ORJSONResponse,
 )

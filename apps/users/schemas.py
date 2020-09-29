@@ -4,7 +4,8 @@ from typing import Optional, List
 import bson
 import pydantic
 
-from apps.common.bases import BaseSchema, OID, CreatedUpdatedBaseSchema
+from apps.common.bases import BaseSchema, OID
+from apps.common.schemas import CreatedUpdatedBaseSchema
 from apps.users.enums import UserRoles
 
 

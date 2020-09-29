@@ -1,14 +1,16 @@
+"""Application middleware classes"""
+from fastapi import Request, Response, responses, status
 from pymongo.errors import DuplicateKeyError
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from fastapi import Request, Response, responses, status
+
 from apps.common.db import get_mongo_client
 from apps.common.exceptions import NotFoundHandlerException, HandlerException, RepositoryException
-import logging
-
-logger = logging.getLogger()
+from apps.common.logging import logger
 
 
 class MongoSessionMiddleware(BaseHTTPMiddleware):
+    """Append 'mongo_session' for every request.state"""
+
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         mongo_client = get_mongo_client()
         async with await mongo_client.start_session() as session:
@@ -17,6 +19,8 @@ class MongoSessionMiddleware(BaseHTTPMiddleware):
 
 
 class ExceptionsMiddleware(BaseHTTPMiddleware):
+    """Middleware that handle default application exceptions"""
+
     async def dispatch(self, request, call_next) -> Response:
         try:
             response = await call_next(request)

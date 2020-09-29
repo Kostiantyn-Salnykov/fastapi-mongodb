@@ -1,5 +1,5 @@
 from typing import List
-import pymongo
+import pymongo.errors
 from apps.common.exceptions import HandlerException
 
 

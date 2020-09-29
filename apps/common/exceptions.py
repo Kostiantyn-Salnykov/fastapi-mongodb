@@ -6,6 +6,7 @@ class PermissionException(Exception):
     """Exception that raises in Permission based classes"""
 
     def __init__(self, detail: str = "", status_code: int = status.HTTP_403_FORBIDDEN):
+        super().__init__()
         self.detail = detail or "This user is not authorized to access this endpoint"
         self.status_code = status_code
 
@@ -19,6 +20,9 @@ class NotFoundHandlerException(HandlerException):
 
 
 class RepositoryException(Exception):
+    """Exception that raises in repositories"""
+
     def __init__(self, detail: str = "", status_code: int = status.HTTP_400_BAD_REQUEST):
+        super().__init__()
         self.detail = detail or "Repository exception"
         self.status_code = status_code

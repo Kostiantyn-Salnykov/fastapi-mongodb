@@ -25,29 +25,29 @@ class UsersHandler:
         self.user_repository = UserRepository(convert_to=UserModel)
 
     @staticmethod
-    def encode_jwt(_id: str, access: bool = True):
+    def encode_jwt(_id: str, refresh: bool = False):
         creation_datetime = datetime.datetime.utcnow()
         payload = {
             "id": _id,
             "exp": creation_datetime
             + datetime.timedelta(
-                minutes=settings.JWT_ACCESS_DELTA_MINUTES if access else settings.JWT_REFRESH_DELTA_MINUTES
+                minutes=settings.JWT_REFRESH_DELTA_MINUTES if refresh else settings.JWT_ACCESS_DELTA_MINUTES
             ),
             "iat": creation_datetime,
             "iss": settings.JWT_ISSUER,
-            "aud": settings.JWT_ACCESS_AUDIENCE if access else settings.JWT_REFRESH_AUDIENCE,
+            "aud": settings.JWT_REFRESH_AUDIENCE if refresh else settings.JWT_ACCESS_AUDIENCE,
         }
         return (jwt.encode(payload=payload, key=settings.SECRET_KEY)).decode("UTF-8")
 
     @staticmethod
-    def decode_jwt(token, access: bool = True, convert_to=None):
+    def decode_jwt(token, refresh: bool = False, convert_to=None):
         try:
             payload = jwt.decode(
                 jwt=token,
                 key=settings.SECRET_KEY,
                 algorithms=["HS256"],
                 issuer=settings.JWT_ISSUER,
-                audience=settings.JWT_ACCESS_AUDIENCE if access else settings.JWT_REFRESH_AUDIENCE,
+                audience=settings.JWT_REFRESH_AUDIENCE if refresh else settings.JWT_ACCESS_AUDIENCE,
             )
             if convert_to is not None:
                 payload = convert_to(**payload)
@@ -79,17 +79,20 @@ class UsersHandler:
         return password_hash
 
     def check_password(self, password: str, password_hash: str) -> bool:
+        """Check password and hash"""
         salt = password_hash[:64]
         stored_password = password_hash[64:]
         check_password_hash = self.__hash(salt=salt, password=password)
         return check_password_hash == stored_password
 
     def make_password(self, password: str) -> str:
+        """Make hash from password"""
         salt = hashlib.sha256(secrets.token_bytes(32)).hexdigest()
         new_password_hash = self.__hash(salt=salt, password=password)
         return salt + new_password_hash
 
     async def create_user(self, request: Request, user: UserCreateSchema) -> dict:
+        """Create new user"""
         user_model = UserModel(
             password_hash=self.make_password(password=user.password), **user.dict(exclude_unset=True)
         )
@@ -123,7 +126,7 @@ class UsersHandler:
             IsAdmin().check(request=request)
             exclude_set = set()
         except PermissionException:
-            exclude_set = UserModel.Meta.update_by_admin_only
+            exclude_set = UserModel.Config.update_by_admin_only
         update_dict = update.dict(exclude_unset=True, exclude=exclude_set)
         if update_dict:
             password, _ = update_dict.pop("password"), update_dict.pop("password_confirm")
@@ -152,10 +155,10 @@ class UsersHandler:
             if self.check_password(password=credentials.password, password_hash=user.password_hash):
                 return {
                     "access": self.encode_jwt(_id=str(user.id)),
-                    "refresh": self.encode_jwt(_id=str(user.id), access=False),
+                    "refresh": self.encode_jwt(_id=str(user.id), refresh=True),
                 }
         raise HandlerException("Invalid credentials.")
 
     async def refresh(self, data: JWTRefreshSchema) -> dict:
-        payload: JWTPayloadSchema = self.decode_jwt(token=data.refresh, access=False, convert_to=JWTPayloadSchema)
-        return {"access": self.encode_jwt(_id=payload.id), "refresh": self.encode_jwt(_id=payload.id, access=False)}
+        payload: JWTPayloadSchema = self.decode_jwt(token=data.refresh, refresh=True, convert_to=JWTPayloadSchema)
+        return {"access": self.encode_jwt(_id=payload.id), "refresh": self.encode_jwt(_id=payload.id, refresh=True)}

@@ -4,10 +4,11 @@ from fastapi import Request, APIRouter, Depends, Body, status, Path
 from fastapi.security import HTTPBearer
 
 from apps.common.bases import OID, PermissionsHandler, Paginator, BaseSort
-from apps.common.paginations import LimitOffsetPagination
 from apps.common.permissions import IsAuthenticated
+from apps.common.pagination import LimitOffsetPagination
 from apps.common.schemas import InsertOneResultSchema, DeleteResultSchema
 from apps.users.handlers import UsersHandler
+from apps.users.models import UserModel
 from apps.users.permissions import IsAdminOrSameClient, IsAdmin
 from apps.users.schemas import (
     UserCreateSchema,
@@ -69,7 +70,7 @@ async def users_list(
     request: Request,
     users_handler: UsersHandler = Depends(UsersHandler),
     paginator: Paginator = Depends(LimitOffsetPagination()),
-    sort_by: BaseSort = Depends(BaseSort),
+    sort_by: BaseSort = Depends(BaseSort(model=UserModel)),
 ):
     result = await users_handler.users_list(request=request, query={}, sort_by=sort_by, paginator=paginator)
     return result

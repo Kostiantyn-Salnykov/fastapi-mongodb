@@ -14,5 +14,7 @@ class UserModel(BaseMongoDBModel):
     is_active: Optional[bool] = pydantic.Field(default=True)
     roles: List[UserRoles] = pydantic.Field(default=[UserRoles.CLIENT])
 
-    class Meta:
+    class Config(BaseMongoDBModel.Config):
         update_by_admin_only: set = {"roles", "is_active"}
+        sorting_default = "email"
+        sorting_fields = ["email", "first_name", "last_name"]
