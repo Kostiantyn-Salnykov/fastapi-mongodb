@@ -6,6 +6,7 @@ import bases.pagination
 import bases.schemas
 import bases.sorting
 import bases.types
+import bases.projectors
 from apps.common.permissions import IsAuthenticated
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
@@ -69,15 +70,19 @@ async def whoami(
 @users_router.get(
     path="/users/",
     response_model=list[BaseUserSchema],
+    response_model_exclude_unset=True,
     dependencies=[Depends(bearer_auth), Depends(bases.handlers.PermissionsHandler(permissions=[IsAdmin()]))],
 )
 async def users_list(
     request: Request,
     users_handler: UsersHandler = Depends(UsersHandler),
     paginator: bases.pagination.Paginator = Depends(bases.pagination.LimitOffsetPagination()),
+    projector: bases.projectors.BaseProjector = Depends(bases.projectors.BaseProjector(model_class=UserModel)),
     sort_by: bases.sorting.BaseSort = Depends(bases.sorting.BaseSort(model=UserModel)),
 ):
-    result = await users_handler.users_list(request=request, query={}, sort_by=sort_by, paginator=paginator)
+    result = await users_handler.users_list(
+        request=request, query={}, sort_by=sort_by, paginator=paginator, projector=projector
+    )
     return result
 
 

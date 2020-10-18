@@ -73,11 +73,7 @@ class BaseSort:
             field_name = field
             if field.startswith("-"):
                 ordering = pymongo.DESCENDING  # change ordering for descending
-                field_name = field  # get field_name without '-' character
-
-            # convert 'id' field to mongodb '_id'
-            if field_name == "id":
-                field_name = "_id"
+                field_name = field.removeprefix("-")  # get field_name without '-' character
 
             if field_name in self.sorting_model_fields:
                 key_or_list.append((field_name, ordering))

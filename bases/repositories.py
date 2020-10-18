@@ -30,7 +30,7 @@ class BaseRepository:
     """Class for CRUD for MongoDB"""
 
     def __init__(self, col_name: str, obj_name: str, repository_config: BaseRepositoryConfig):
-        self.obj_name = obj_name
+        self.obj_name: str = obj_name
         self._db: Database = bases.db.MongoDBConnection.get_default_db()
         self.col: Collection = self._db[col_name]
         self.repository_config: BaseRepositoryConfig = repository_config

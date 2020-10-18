@@ -12,6 +12,8 @@ from pymongo.results import InsertOneResult
 import bases.repositories
 import bases.sorting
 import bases.types
+import bases.projectors
+import bases.pagination
 from apps.users.models import UserModel
 from apps.users.permissions import IsAdmin
 from apps.users.repositories import UserRepository
@@ -108,13 +110,21 @@ class UsersHandler:
         result: UserModel = await self.user_repository.find_one(query=query, session=request.state.mongo_session)
         return result
 
-    async def users_list(self, request: Request, query: dict, sort_by: bases.sorting.BaseSort, paginator):
+    async def users_list(
+        self,
+        request: Request,
+        query: dict,
+        sort_by: bases.sorting.BaseSort,
+        paginator: bases.pagination.Paginator,
+        projector: bases.projectors.BaseProjector,
+    ):
         result: List[UserModel] = await self.user_repository.find(
             query=query,
             sort=sort_by.to_db(),
             skip=paginator.skip,
             limit=paginator.limit,
             session=request.state.mongo_session,
+            projection=projector.to_db(),
             repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
         )
         return result
