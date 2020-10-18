@@ -15,6 +15,7 @@ class UserModel(BaseMongoDBModel):
     roles: List[UserRoles] = pydantic.Field(default=[UserRoles.CLIENT])
 
     class Config(BaseMongoDBModel.Config):
+        use_datetime_fields = True
         update_by_admin_only: set = {"roles", "is_active"}
         sorting_default = "email"
         sorting_fields = ["email", "first_name", "last_name"]

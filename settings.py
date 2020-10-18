@@ -1,3 +1,4 @@
+import logging
 import pathlib
 from functools import lru_cache
 
@@ -15,6 +16,7 @@ class Settings(pydantic.BaseSettings):
     RELOAD: bool = pydantic.Field(default=False)
     COLOR_LOGS: bool = pydantic.Field(default=False)
     LOGGER_NAME: str = pydantic.Field(default="MAIN_LOGGER")
+    LOGGER_LEVEL: int = pydantic.Field(default=logging.DEBUG)
     UVICORN_LOG_LEVEL: str = pydantic.Field(default="debug")
     HOST: str = pydantic.Field(default="0.0.0.0")
     PORT: int = pydantic.Field(default=9000)

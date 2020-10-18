@@ -5,23 +5,22 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+black = "*"
 
 [packages]
 fastapi = "*"
 orjson = "*"
 uvicorn = "*"
-pydantic = {extras = ["email"],version = "*"}
+pydantic = {extras = ["email", "dotenv"],version = "*"}
 typer = "*"
 motor = "*"
 ipython = "*"
-pymongo = "*"
-dnspython = "*"
-black = "*"
+pymongo = {extras = ["tls", "srv"],version = "*"}
 pyjwt = "*"
 gunicorn = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true

@@ -9,8 +9,9 @@ from apps.common.schemas import CreatedUpdatedBaseSchema
 from apps.users.enums import UserRoles
 
 
+# TODO: Make fields.py to remove code duplication
 class BaseUserSchema(BaseSchema, CreatedUpdatedBaseSchema):
-    id: OID
+    id: Optional[OID] = pydantic.Field(alias="_id")
     email: Optional[pydantic.EmailStr]
     first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
     last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
@@ -23,19 +24,11 @@ class UserCreateSchema(BaseSchema):
     first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
     last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
     password: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-    password_confirm: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-
-    @pydantic.validator("password_confirm", always=True)
-    def passwords_match(cls, v, values, **kwargs):
-        if "password" in values and v != values["password"]:
-            raise ValueError("'password' and 'password_confirm' do not match")
-        return v
 
 
 class UserUpdateSchema(UserCreateSchema):
     email: Optional[pydantic.EmailStr]
     password: Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-    password_confirm: Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
     is_active: Optional[bool]
     roles: Optional[List[UserRoles]]
 

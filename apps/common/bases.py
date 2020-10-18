@@ -1,11 +1,11 @@
 """Bases classes for project"""
 import datetime
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Type, Tuple
 
 import bson
 import fastapi
 import orjson
-import pydantic
+import pydantic.typing
 import pymongo
 from pymongo.client_session import ClientSession
 from pymongo.collection import Collection
@@ -36,7 +36,7 @@ class OID(str):
         """Update OpenAPI docs schema"""
         field_schema.update(
             pattern="^[a-f0-9]{24}$",
-            example="5f539e21552f50d572ad66e3",
+            example="5f5cf6f50cde9ec07786b294",
             title="ObjectId",
             type="string",
         )
@@ -47,7 +47,7 @@ class OID(str):
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v) -> bson.ObjectId:
         """Default validation for Pydantic Types"""
         try:
             return bson.ObjectId(str(v))
@@ -68,6 +68,10 @@ class BaseConfiguration(pydantic.BaseConfig):
     json_loads = orjson.loads
 
 
+def get_naive_datetime_from_object_id(object_id: Union[bson.ObjectId, OID]):
+    return object_id.generation_time.replace(tzinfo=None)
+
+
 class BaseMongoDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
@@ -78,6 +82,7 @@ class BaseMongoDBModel(pydantic.BaseModel):
     class Config(BaseConfiguration):
         """configuration class"""
 
+        use_datetime_fields: bool = False
         sorting_fields: List[str] = []
         sorting_default: str = "-_id"
 
@@ -87,44 +92,58 @@ class BaseMongoDBModel(pydantic.BaseModel):
         if not data:
             return data
         _id = data.pop("_id", None)
-        return cls(id=_id, created_datetime=_id.generation_time.replace(tzinfo=None), **data)  # noqa
+        if _id is None:
+            return cls(**data)  # projection flow with _id: False
+        if cls.Config.use_datetime_fields:
+            data["created_datetime"] = get_naive_datetime_from_object_id(object_id=_id)
+        return cls(id=_id, **data)  # noqa
 
-    def to_db(self, **kwargs) -> dict:
+    def to_db(
+        self,
+        *,
+        include: Union["pydantic.typing.AbstractSetIntStr", "pydantic.typing.MappingIntStrAny"] = None,
+        exclude: Union["pydantic.typing.AbstractSetIntStr", "pydantic.typing.MappingIntStrAny"] = None,
+        by_alias: bool = True,  # pydantic default is False
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = True,  # pydantic default is False
+    ) -> dict:
         """Preparing data for MongoDB"""
-        exclude_none = kwargs.pop("exclude_none", True)
-        by_alias = kwargs.pop("by_alias", True)
 
-        result: dict = self.dict(exclude_none=exclude_none, by_alias=by_alias, **kwargs)
+        result: dict = self.dict(
+            include=include,
+            exclude=exclude,
+            by_alias=by_alias,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+        )
 
         # if no 'id' -> creates it
         if "id" not in result:
             result["id"] = bson.ObjectId()
 
         # if 'updated_datetime' already exists -> update it by current datetime
-        if "updated_datetime" in result:
+        if self.Config.use_datetime_fields:
             result["updated_datetime"] = datetime.datetime.utcnow()
 
-        # if 'id' exists and no 'updated_datetime' -> get it from ObjectId
-        if "id" in result and "updated_datetime" not in result:
-            result["updated_datetime"] = result["id"].generation_time.replace(tzinfo=None)
-
         # replace 'id' to '_id'
-        if "_id" not in result and "id" in result:
-            result["_id"] = result.pop("id")
-
+        result["_id"] = result.pop("id")
         return result
 
     @property
     def datetime_created(self):
-        """Retrieve created datetime for document from MongoDB"""
+        """Retrieve created datetime for a document from MongoDB"""
         try:
-            return self.id.generation_time.replace(tzinfo=None)
+            return get_naive_datetime_from_object_id(object_id=self.id)
         except (KeyError, AttributeError) as error:
             raise NotImplementedError("You should retrieve an '_id' field from MongoDB to use this property") from error
 
 
 class BaseSchema(pydantic.BaseModel):
-    """Class that using as a base class for schemas.py"""
+    """Class using as a base class for schemas.py"""
 
     class Config(BaseConfiguration):
         """configuration class"""
@@ -137,10 +156,10 @@ class BaseRepository:
         self.obj_name = obj_name
         self._db: Database = get_default_db()
         self.col: Collection = self._db[col_name]
-        self._convert_to = kwargs.get("convert_to", None)
+        self._convert_to: Type[BaseMongoDBModel] = kwargs.get("convert_to", None)
         self.convert = kwargs.get("convert", True)
         if not issubclass(self._convert_to, BaseMongoDBModel):
-            raise NotImplementedError(f"'convert_to' kwarg must be an subclass from '{BaseMongoDBModel.__name__}'")
+            raise NotImplementedError(f"'convert_to' kwarg must be a subclass from '{BaseMongoDBModel.__name__}'")
 
     def convert_one_result(self, result: dict, extra_kwargs: dict = None):
         """Convert result from MongoDB to BaseMongoDBModel subclass"""
@@ -155,14 +174,18 @@ class BaseRepository:
             result = convert_to.from_db(data=result)
         return result
 
-    def _not_found_convert_flow(self, result, extra_kwargs: dict = None):
-        """convert result to BaseMongoDBModel subclass or raise error if result is None"""
+    def _raise_not_found(self, result, extra_kwargs: dict = None):
+        """raise an error if result is None"""
         extra_kwargs = {} if extra_kwargs is None else extra_kwargs
         raise_not_found = extra_kwargs.get("raise_not_found", True)
         if result is None and raise_not_found:
             raise RepositoryException(
                 detail=f"{self.obj_name} not found", status_code=fastapi.status.HTTP_404_NOT_FOUND
             )
+
+    def _not_found_convert_flow(self, result, extra_kwargs: dict = None):
+        """convert result to BaseMongoDBModel subclass"""
+        self._raise_not_found(result=result, extra_kwargs=extra_kwargs)
         return self.convert_one_result(result=result, extra_kwargs=extra_kwargs)
 
     async def insert_one(self, document: dict, session: ClientSession = None, **kwargs) -> InsertOneResult:
@@ -201,13 +224,13 @@ class BaseRepository:
         return await self.col.delete_one(filter=query, session=session, **kwargs)
 
     async def delete_many(self, query: dict, session: ClientSession = None, **kwargs) -> DeleteResult:
-        """delete many document from MongoDB"""
+        """delete many documents from MongoDB"""
         return await self.col.delete_many(filter=query, session=session, **kwargs)
 
     async def find(
         self,
         query: dict,
-        sort: List[tuple] = None,
+        sort: List[Tuple[str, int]] = None,
         skip: int = 0,
         limit: int = 0,
         projection: Union[List[str], Dict[str, bool]] = None,
@@ -219,16 +242,24 @@ class BaseRepository:
         results_cursor = self.col.find(
             filter=query, sort=sort, skip=skip, limit=limit, projection=projection, session=session, **kwargs
         )
+
         extra_kwargs = {} if extra_kwargs is None else extra_kwargs
         if extra_kwargs.get("convert", self.convert):
             convert_to = extra_kwargs.get("convert_to", self._convert_to)
             return [convert_to.from_db(data=result) async for result in results_cursor]
-        return [result async for result in results_cursor]
+
+        if self._convert_to.Config.use_datetime_fields:
+            return [
+                {**item, "created_datetime": get_naive_datetime_from_object_id(object_id=item["_id"])}
+                async for item in results_cursor
+                if item.get("_id", None)
+            ]
+        return [item async for item in results_cursor]
 
     async def find_one(
         self,
         query: dict,
-        sort: List[tuple] = None,
+        sort: List[Tuple[str, int]] = None,
         projection: Union[List[str], Dict[str, bool]] = None,
         session: ClientSession = None,
         extra_kwargs: dict = None,
@@ -241,13 +272,13 @@ class BaseRepository:
     async def find_one_and_delete(
         self,
         query: dict,
-        sort: List[tuple] = None,
+        sort: List[Tuple[str, int]] = None,
         projection: Union[List[str], Dict[str, bool]] = None,
         session: ClientSession = None,
         extra_kwargs: dict = None,
         **kwargs,
     ):
-        """find one and delete document from MongoDB"""
+        """find one and delete a document from MongoDB"""
         result = await self.col.find_one_and_delete(
             filter=query, projection=projection, sort=sort, session=session, **kwargs
         )
@@ -258,13 +289,13 @@ class BaseRepository:
         query: dict,
         replacement: dict,
         upsert: bool = False,
-        sort: List[tuple] = None,
+        sort: List[Tuple[str, int]] = None,
         projection: Union[List[str], Dict[str, bool]] = None,
         session: ClientSession = None,
         extra_kwargs: dict = None,
         **kwargs,
     ):
-        """find one and replace document from MongoDB"""
+        """find one and replace a document from MongoDB"""
         result = await self.col.find_one_and_replace(
             filter=query,
             replacement=replacement,
@@ -280,7 +311,7 @@ class BaseRepository:
         self,
         query: dict,
         update: dict,
-        sort: List[tuple] = None,
+        sort: List[Tuple[str, int]] = None,
         projection: Union[List[str], Dict[str, bool]] = None,
         session: ClientSession = None,
         extra_kwargs: dict = None,
@@ -299,6 +330,8 @@ class BaseRepository:
     async def estimated_document_count(self, **kwargs):
         """count documents in MongoDB from collection metadata"""
         return await self.col.estimated_document_count(**kwargs)
+
+    # TODO: add aggregate method
 
 
 class BasePermission:
@@ -341,12 +374,14 @@ class Paginator(pydantic.BaseModel):
     )
 
 
+# TODO: optimize sorting for a query and aggregate
 class BaseSort:
     """Class as dependency for sorting query system"""
 
-    def __init__(self, model: BaseMongoDBModel, default_sort_query: str = "-_id"):
+    def __init__(self, model):
         self.model = model
-        self.default_sort_query = default_sort_query
+        self._id_field = "_id"
+        self.default_sort_query = f"-{self._id_field}"
         self.sorting_model_fields: List[str] = self._get_sorting_fields()
         self.sorting_model_default: str = self._get_sorting_default()
         self.order_by = None
@@ -358,7 +393,7 @@ class BaseSort:
             max_length=256,
             alias="orderBy",
             description="Comma separated values with 'field_name' for ascending order and '-field_name' for descending "
-            "order. Examples: 'sortBy=-email,-id' or 'sortBy=email,id'",
+            "order. Examples: 'orderBy=-email,-id' or 'orderBy=email,id'",
             example="email,-id",
         ),
     ):
@@ -380,23 +415,46 @@ class BaseSort:
         except (KeyError, AttributeError):
             return self.default_sort_query
 
-    def to_db(self):
+    def _append_id_field_sorting(self, key_or_list: List[Tuple[str, int]]):
+        append_id_sorting = True
+
+        for sorting in key_or_list:
+            sort_key = sorting[0]
+            if sort_key == self._id_field:
+                append_id_sorting = False
+
+        if append_id_sorting:
+            key_or_list.append((self._id_field, pymongo.DESCENDING))
+
+    def _convert_to_pipeline_stage(self, key_or_list: List[Tuple[str, int]]) -> Dict[str, int]:
+        sort_stage = {}
+
+        for field_name, ordering in key_or_list:
+            sort_stage.update({field_name: ordering})
+
+        return sort_stage
+
+    def to_db(self, to_pipeline_stage: bool = False) -> Union[List[Tuple[str, int]], Dict[str, int]]:
         """Collect sorting keys for MongoDB"""
         sort_list = self.order_by.split(",")
         key_or_list = []
         for field in sort_list:
             ordering = pymongo.ASCENDING
-            field_value = field
+            field_name = field
             if field.startswith("-"):
-                ordering = pymongo.DESCENDING  # change ordering to descending
-                field_value = field[1:]  # get field_value without '-' character
+                ordering = pymongo.DESCENDING  # change ordering for descending
+                field_name = field  # get field_name without '-' character
 
             # convert 'id' field to mongodb '_id'
-            if field_value == "id":
-                field_value = "_id"
+            if field_name == "id":
+                field_name = "_id"
 
-            if field_value in self.sorting_model_fields:
-                key_or_list.append((field_value, ordering))
+            if field_name in self.sorting_model_fields:
+                key_or_list.append((field_name, ordering))
 
-        key_or_list.sort()
+        self._append_id_field_sorting(key_or_list=key_or_list)
+
+        if to_pipeline_stage:
+            return self._convert_to_pipeline_stage(key_or_list=key_or_list)
+
         return key_or_list

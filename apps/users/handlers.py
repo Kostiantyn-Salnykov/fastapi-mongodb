@@ -113,9 +113,9 @@ class UsersHandler:
             skip=paginator.skip,
             limit=paginator.limit,
             session=request.state.mongo_session,
+            extra_kwargs={"convert": False},
         )
-        converted_result: List[dict] = [user.dict() for user in result]
-        return converted_result
+        return result
 
     async def delete_user(self, request: Request, query: dict):
         result = await self.user_repository.delete_one(query=query, session=request.state.mongo_session)
@@ -129,8 +129,9 @@ class UsersHandler:
             exclude_set = UserModel.Config.update_by_admin_only
         update_dict = update.dict(exclude_unset=True, exclude=exclude_set)
         if update_dict:
-            password, _ = update_dict.pop("password"), update_dict.pop("password_confirm")
-            update_dict["password_hash"] = self.make_password(password=password)
+            password = update_dict.pop("password", None)
+            if password is not None:
+                update_dict["password_hash"] = self.make_password(password=password)
             update_dict["updated_datetime"] = datetime.datetime.utcnow()
             user: UserModel = await self.user_repository.find_one_and_update(
                 query={"_id": _id},

@@ -51,7 +51,7 @@ def setup_logging():
     handler.setFormatter(fmt=formatter)
 
     main_logger = logging.getLogger(name=settings.LOGGER_NAME)
-    main_logger.setLevel(level=logging.NOTSET)
+    main_logger.setLevel(level=settings.LOGGER_LEVEL)
     main_logger.addHandler(hdlr=handler)
     return main_logger
 
