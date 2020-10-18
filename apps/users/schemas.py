@@ -4,14 +4,14 @@ from typing import Optional, List
 import bson
 import pydantic
 
-from apps.common.bases import BaseSchema, OID
-from apps.common.schemas import CreatedUpdatedBaseSchema
+import bases.types
 from apps.users.enums import UserRoles
+from bases.schemas import CreatedUpdatedBaseSchema, BaseSchema
 
 
 # TODO: Make fields.py to remove code duplication
 class BaseUserSchema(BaseSchema, CreatedUpdatedBaseSchema):
-    id: Optional[OID] = pydantic.Field(alias="_id")
+    id: Optional[bases.types.OID] = pydantic.Field(alias="_id")
     email: Optional[pydantic.EmailStr]
     first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
     last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")

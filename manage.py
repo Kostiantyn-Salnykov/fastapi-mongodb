@@ -4,7 +4,7 @@ from typing import List
 import pydantic
 import typer
 
-from apps.common.utils import MakeAsync
+import bases.utils
 from apps.users.commands import users_commands
 from settings import settings
 
@@ -13,7 +13,7 @@ app.add_typer(typer_instance=users_commands)
 
 
 @app.command(name="setup_apps")
-@MakeAsync()
+@bases.utils.MakeAsync()
 async def setup_apps():
     apps_directory = settings.BASE_DIR / "apps"
     if apps_directory.is_dir():
@@ -30,7 +30,7 @@ async def setup_apps():
 
 
 @app.command(name="createapp")
-@MakeAsync()
+@bases.utils.MakeAsync()
 async def creteapp():
     apps_directory = settings.BASE_DIR / "apps"
 
@@ -72,8 +72,8 @@ def get_settings() -> {capitalized_app_name}Settings:
             path=[app_name],
             content=f"""import typer
 
-from apps.common.db import make_collection
-from apps.common.utils import MakeAsync
+import bases.db
+import bases.utils
 from apps.{app_name}.config import {app_name}_settings
 
 __all__ = ["{app_name}_commands"]
@@ -83,11 +83,11 @@ __all__ = ["{app_name}_commands"]
 
 
 async def setup_app():
-    await make_collection(col_name={app_name}_settings.{upper_app_name}_COL)
+    await bases.db.MongoDBConnection.make_collection(col_name={app_name}_settings.{upper_app_name}_COL)
 
 
 @{app_name}_commands.command(name="setup")
-@MakeAsync()
+@bases.utils.MakeAsync()
 async def setup():
     await setup_app()
 """,
@@ -110,7 +110,7 @@ async def setup():
             with open(file=new_file_path, mode="w") as write_file:
                 write_file.write(file.content)
 
-    typer.secho(message=f"Application {app_name} has been created.", fg=typer.colors.GREEN)
+    typer.secho(message=f"Application '{app_name}' has been created.", fg=typer.colors.GREEN)
 
 
 if __name__ == "__main__":

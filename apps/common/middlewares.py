@@ -1,18 +1,20 @@
 """Application middleware classes"""
+import traceback
+
 from fastapi import Request, Response, responses, status
 from pymongo.errors import DuplicateKeyError
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from apps.common.db import get_mongo_client
-from apps.common.exceptions import NotFoundHandlerException, HandlerException, RepositoryException
-from apps.common.logging import logger
+import bases.db
+from bases.exceptions import NotFoundHandlerException, HandlerException, RepositoryException
+from bases.logging import logger
 
 
 class MongoSessionMiddleware(BaseHTTPMiddleware):
     """Append 'mongo_session' for every request.state"""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        mongo_client = get_mongo_client()
+        mongo_client = bases.db.MongoDBConnection.get_mongo_client()
         async with await mongo_client.start_session() as session:
             request.state.mongo_session = session
             return await call_next(request)
@@ -33,6 +35,7 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
         except RepositoryException as error:
             return responses.ORJSONResponse(status_code=error.status_code, content={"detail": error.detail})
         except Exception as error:
+            traceback.print_exc()
             logger.error(msg=f"HandlerExceptionsMiddleware | Exception | {error}")
             return responses.ORJSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"detail": str(error)}

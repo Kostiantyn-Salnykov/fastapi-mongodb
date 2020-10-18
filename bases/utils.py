@@ -1,8 +1,16 @@
 import asyncio
 import functools
+import typing
 import unittest
 import unittest.mock
-import typing
+
+import bson
+
+import bases.types
+
+
+def get_naive_datetime_from_object_id(object_id: typing.Union[bson.ObjectId, bases.types.OID]):
+    return object_id.generation_time.replace(tzinfo=None)
 
 
 class MakeAsync:

@@ -9,12 +9,14 @@ import pymongo
 from fastapi import Request
 from pymongo.results import InsertOneResult
 
-from apps.common.bases import BaseSort, OID
-from apps.common.exceptions import HandlerException, PermissionException, RepositoryException
+import bases.repositories
+import bases.sorting
+import bases.types
 from apps.users.models import UserModel
 from apps.users.permissions import IsAdmin
 from apps.users.repositories import UserRepository
 from apps.users.schemas import UserCreateSchema, UserLoginSchema, JWTRefreshSchema, JWTPayloadSchema, UserUpdateSchema
+from bases.exceptions import HandlerException, PermissionException, RepositoryException
 from settings import settings
 
 __all__ = ["UsersHandler"]
@@ -22,7 +24,7 @@ __all__ = ["UsersHandler"]
 
 class UsersHandler:
     def __init__(self):
-        self.user_repository = UserRepository(convert_to=UserModel)
+        self.user_repository = UserRepository()
 
     @staticmethod
     def encode_jwt(_id: str, refresh: bool = False):
@@ -106,14 +108,14 @@ class UsersHandler:
         result: UserModel = await self.user_repository.find_one(query=query, session=request.state.mongo_session)
         return result
 
-    async def users_list(self, request: Request, query: dict, sort_by: BaseSort, paginator):
+    async def users_list(self, request: Request, query: dict, sort_by: bases.sorting.BaseSort, paginator):
         result: List[UserModel] = await self.user_repository.find(
             query=query,
             sort=sort_by.to_db(),
             skip=paginator.skip,
             limit=paginator.limit,
             session=request.state.mongo_session,
-            extra_kwargs={"convert": False},
+            repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
         )
         return result
 
@@ -121,7 +123,7 @@ class UsersHandler:
         result = await self.user_repository.delete_one(query=query, session=request.state.mongo_session)
         return {"acknowledged": result.acknowledged, "deleted_count": result.deleted_count}
 
-    async def update_user(self, request: Request, _id: OID, update: UserUpdateSchema):
+    async def update_user(self, request: Request, _id: bases.types.OID, update: UserUpdateSchema):
         try:
             IsAdmin().check(request=request)
             exclude_set = set()

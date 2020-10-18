@@ -1,8 +1,8 @@
 from fastapi import Request
 
-from apps.common.exceptions import PermissionException
 from apps.common.permissions import IsAuthenticated
 from apps.users.enums import UserRoles
+from bases.exceptions import PermissionException
 
 
 class IsAdmin(IsAuthenticated):
@@ -33,4 +33,4 @@ class IsAdminOrSameClient(IsAuthenticated):
             query_user_id = request.query_params.get(self.param_name)
 
         if query_user_id and str(request.user.id) != query_user_id:
-            raise PermissionException(detail="You can't see other users.")
+            raise PermissionException()

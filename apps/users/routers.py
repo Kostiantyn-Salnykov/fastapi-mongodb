@@ -1,12 +1,12 @@
-from typing import List
-
 from fastapi import Request, APIRouter, Depends, Body, status, Path
 from fastapi.security import HTTPBearer
 
-from apps.common.bases import OID, PermissionsHandler, Paginator, BaseSort
+import bases.handlers
+import bases.pagination
+import bases.schemas
+import bases.sorting
+import bases.types
 from apps.common.permissions import IsAuthenticated
-from apps.common.pagination import LimitOffsetPagination
-from apps.common.schemas import InsertOneResultSchema, DeleteResultSchema
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.permissions import IsAdminOrSameClient, IsAdmin
@@ -30,7 +30,7 @@ login_router = APIRouter()
 @users_router.post(
     path="/users/",
     name="Create user",
-    response_model=InsertOneResultSchema,
+    response_model=bases.schemas.InsertOneResultSchema,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user(request: Request, user: UserCreateSchema, users_handler: UsersHandler = Depends(UsersHandler)):
@@ -42,9 +42,14 @@ async def create_user(request: Request, user: UserCreateSchema, users_handler: U
     name="Get user by '_id'",
     description="Retrieve user by '_id'",
     response_model=BaseUserSchema,
-    dependencies=[Depends(bearer_auth), Depends(PermissionsHandler(permissions=[IsAdminOrSameClient()]))],
+    dependencies=[
+        Depends(bearer_auth),
+        Depends(bases.handlers.PermissionsHandler(permissions=[IsAdminOrSameClient()])),
+    ],
 )
-async def retrieve_user(request: Request, _id: OID = Path(...), users_handler: UsersHandler = Depends(UsersHandler)):
+async def retrieve_user(
+    request: Request, _id: bases.types.OID = Path(...), users_handler: UsersHandler = Depends(UsersHandler)
+):
     result = await users_handler.retrieve_user(request=request, query={"_id": _id})
     return result.dict()
 
@@ -53,7 +58,7 @@ async def retrieve_user(request: Request, _id: OID = Path(...), users_handler: U
     path="/whoami/",
     name="Get user from authorization",
     response_model=BaseUserSchema,
-    dependencies=[Depends(bearer_auth), Depends(PermissionsHandler(permissions=[IsAuthenticated()]))],
+    dependencies=[Depends(bearer_auth), Depends(bases.handlers.PermissionsHandler(permissions=[IsAuthenticated()]))],
 )
 async def whoami(
     request: Request,
@@ -63,14 +68,14 @@ async def whoami(
 
 @users_router.get(
     path="/users/",
-    response_model=List[BaseUserSchema],
-    dependencies=[Depends(bearer_auth), Depends(PermissionsHandler(permissions=[IsAdmin()]))],
+    response_model=list[BaseUserSchema],
+    dependencies=[Depends(bearer_auth), Depends(bases.handlers.PermissionsHandler(permissions=[IsAdmin()]))],
 )
 async def users_list(
     request: Request,
     users_handler: UsersHandler = Depends(UsersHandler),
-    paginator: Paginator = Depends(LimitOffsetPagination()),
-    sort_by: BaseSort = Depends(BaseSort(model=UserModel)),
+    paginator: bases.pagination.Paginator = Depends(bases.pagination.LimitOffsetPagination()),
+    sort_by: bases.sorting.BaseSort = Depends(bases.sorting.BaseSort(model=UserModel)),
 ):
     result = await users_handler.users_list(request=request, query={}, sort_by=sort_by, paginator=paginator)
     return result
@@ -79,11 +84,14 @@ async def users_list(
 @users_router.patch(
     path="/users/{_id}/",
     response_model=BaseUserSchema,
-    dependencies=[Depends(bearer_auth), Depends(PermissionsHandler(permissions=[IsAdminOrSameClient()]))],
+    dependencies=[
+        Depends(bearer_auth),
+        Depends(bases.handlers.PermissionsHandler(permissions=[IsAdminOrSameClient()])),
+    ],
 )
 async def update_user(
     request: Request,
-    _id: OID = Path(...),
+    _id: bases.types.OID = Path(...),
     update: UserUpdateSchema = Body(...),
     users_handler: UsersHandler = Depends(UsersHandler),
 ):
@@ -92,10 +100,12 @@ async def update_user(
 
 @users_router.delete(
     path="/users/{_id}/",
-    response_model=DeleteResultSchema,
-    dependencies=[Depends(bearer_auth), Depends(PermissionsHandler(permissions=[IsAdmin()]))],
+    response_model=bases.schemas.DeleteResultSchema,
+    dependencies=[Depends(bearer_auth), Depends(bases.handlers.PermissionsHandler(permissions=[IsAdmin()]))],
 )
-async def delete_user(request: Request, _id: OID = Path(...), users_handler: UsersHandler = Depends(UsersHandler)):
+async def delete_user(
+    request: Request, _id: bases.types.OID = Path(...), users_handler: UsersHandler = Depends(UsersHandler)
+):
     return await users_handler.delete_user(request=request, query={"_id": _id})
 
 

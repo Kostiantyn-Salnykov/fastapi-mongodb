@@ -2,8 +2,8 @@ from typing import Optional, List
 
 import pydantic
 
-from apps.common.bases import BaseMongoDBModel
 from apps.users.enums import UserRoles
+from bases.models import BaseMongoDBModel
 
 
 class UserModel(BaseMongoDBModel):

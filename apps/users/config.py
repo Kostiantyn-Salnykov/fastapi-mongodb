@@ -1,6 +1,6 @@
-import pydantic
 from functools import lru_cache
 
+import pydantic
 
 __all__ = ["users_settings"]
 
