@@ -28,6 +28,7 @@ class MainFormatter(logging.Formatter):
             text=str(recordcopy.__dict__["lineno"]), fg="bright_blue", underline=True
         )
         recordcopy.__dict__["created"] = click.style(text=str(recordcopy.__dict__["created"]), fg="cyan")
+        recordcopy.__dict__["asctime"] = click.style(text=str(recordcopy.__dict__["asctime"]), fg="cyan")
         separator = " " * (8 - len(recordcopy.__dict__["levelname"]))
         recordcopy.__dict__["levelname"] = (
             self.COLORS[recordcopy.__dict__["levelno"]](recordcopy.__dict__["levelname"])
@@ -41,7 +42,8 @@ class MainFormatter(logging.Formatter):
 def setup_logging():
     """Setup logging formatter"""
     default_format = (
-        "%(levelname)s %(message)s (%(created)s) \n╰───{file_format}%(pathname)s{line_format}%(lineno)s".format(
+        "%(levelname)s %(message)s (%(created)s / %(asctime)s)"
+        "\n╰───{file_format}%(pathname)s{line_format}%(lineno)s".format(
             file_format=click.style(text='File "', fg="bright_blue", bold=True),
             line_format=click.style(text='", line ', fg="bright_blue", bold=True),
         )

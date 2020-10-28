@@ -130,7 +130,7 @@ if settings.DEBUG:
 
 
 class MongoDBConnection:
-    """Class that hold MongoDB client connection"""
+    """Class hold MongoDB client connection"""
 
     client: AsyncIOMotorClient = None
 

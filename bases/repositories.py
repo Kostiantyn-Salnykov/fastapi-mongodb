@@ -52,6 +52,20 @@ class BaseRepository:
             result = convert_to.from_db(data=result)
         return result
 
+    async def convert_many_results(self, results_cursor, repository_config: BaseRepositoryConfig = None):
+        repository_config = self.repository_config if repository_config is None else repository_config
+        convert_to = repository_config.convert_to or self.repository_config.convert_to
+        if repository_config.convert:
+            return [convert_to.from_db(data=result) async for result in results_cursor]
+
+        if convert_to.Config.use_datetime_fields:
+            return [
+                {**item, "created_datetime": bases.utils.get_naive_datetime_from_object_id(object_id=item["_id"])}
+                async for item in results_cursor
+                if item.get("_id", None)
+            ]
+        return [item async for item in results_cursor]
+
     def _raise_not_found(self, result, repository_config: BaseRepositoryConfig = None):
         """raise an error if result is None"""
         repository_config = self.repository_config if repository_config is None else repository_config
@@ -121,18 +135,7 @@ class BaseRepository:
             filter=query, sort=sort, skip=skip, limit=limit, projection=projection, session=session, **kwargs
         )
 
-        repository_config = self.repository_config if repository_config is None else repository_config
-        convert_to = repository_config.convert_to or self.repository_config.convert_to
-        if repository_config.convert:
-            return [convert_to.from_db(data=result) async for result in results_cursor]
-
-        if convert_to.Config.use_datetime_fields:
-            return [
-                {**item, "created_datetime": bases.utils.get_naive_datetime_from_object_id(object_id=item["_id"])}
-                async for item in results_cursor
-                if item.get("_id", None)
-            ]
-        return [item async for item in results_cursor]
+        return await self.convert_many_results(results_cursor=results_cursor, repository_config=repository_config)
 
     async def find_one(
         self,
@@ -209,4 +212,8 @@ class BaseRepository:
         """count documents in MongoDB from collection metadata"""
         return await self.col.estimated_document_count(**kwargs)
 
-    # TODO: add aggregate method
+    async def aggregate(
+        self, pipeline: list, session: ClientSession = None, repository_config: BaseRepositoryConfig = None, **kwargs
+    ):
+        results_cursor = self.col.aggregate(pipeline=pipeline, session=session, **kwargs)
+        return await self.convert_many_results(results_cursor=results_cursor, repository_config=repository_config)

@@ -13,8 +13,8 @@ class BaseMongoDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
     id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")
-    created_datetime: typing.Optional[datetime.datetime]
-    updated_datetime: typing.Optional[datetime.datetime]
+    created_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
+    updated_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
 
     class Config(bases.config.BaseConfiguration):
         """configuration class"""
