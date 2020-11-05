@@ -46,8 +46,8 @@ class BaseRepository:
             convert_to = repository_config.convert_to
             if convert_to is None:
                 raise NotImplementedError(
-                    "Please setup repository class (append 'convert_to' argument) or pass "
-                    "'repository_config={'convert': False}' to this method call."
+                    "Please setup repository_config class (and append 'convert_to' argument) or change "
+                    "('convert' argument to 'False'). Also, you can override 'repository_config' class in this method."
                 )
             result = convert_to.from_db(data=result)
         return result
@@ -57,13 +57,6 @@ class BaseRepository:
         convert_to = repository_config.convert_to or self.repository_config.convert_to
         if repository_config.convert:
             return [convert_to.from_db(data=result) async for result in results_cursor]
-
-        if convert_to.Config.use_datetime_fields:
-            return [
-                {**item, "created_datetime": bases.utils.get_naive_datetime_from_object_id(object_id=item["_id"])}
-                async for item in results_cursor
-                if item.get("_id", None)
-            ]
         return [item async for item in results_cursor]
 
     def _raise_not_found(self, result, repository_config: BaseRepositoryConfig = None):

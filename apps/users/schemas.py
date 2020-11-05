@@ -1,11 +1,10 @@
 import datetime
-from typing import Optional, List
+from typing import Optional
 
 import bson
 import pydantic
 
 import bases.types
-from apps.users.enums import UserRoles
 from bases.schemas import CreatedUpdatedBaseSchema, BaseSchema
 
 
@@ -16,7 +15,6 @@ class BaseUserSchema(BaseSchema, CreatedUpdatedBaseSchema):
     first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
     last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
     is_active: Optional[bool]
-    roles: Optional[List[UserRoles]]
 
 
 class UserCreateSchema(BaseSchema):
@@ -30,7 +28,6 @@ class UserUpdateSchema(UserCreateSchema):
     email: Optional[pydantic.EmailStr]
     password: Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
     is_active: Optional[bool]
-    roles: Optional[List[UserRoles]]
 
 
 class UserLoginSchema(BaseSchema):

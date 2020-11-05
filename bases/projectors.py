@@ -14,8 +14,16 @@ class BaseProjector:
 
     def __call__(
         self,
-        fields_show: str = fastapi.Query(default=None, alias="fieldsShow"),
-        fields_hide: str = fastapi.Query(default=None, alias="fieldsHide"),
+        fields_show: str = fastapi.Query(
+            default=None,
+            alias="fieldsShow",
+            description="Comma separated values with field names. (You can't exclude '_id' field)",
+        ),
+        fields_hide: str = fastapi.Query(
+            default=None,
+            alias="fieldsHide",
+            description="Comma separated values with field names. (You can't exclude '_id' field)",
+        ),
     ):
         if fields_show is not None and fields_hide is not None:
             raise bases.exceptions.HandlerException("You can't add 'fieldsShow' and 'fieldsHide' together to Projector")

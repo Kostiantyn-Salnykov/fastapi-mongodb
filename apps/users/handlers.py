@@ -9,16 +9,21 @@ import pymongo
 from fastapi import Request
 from pymongo.results import InsertOneResult
 
+import bases.pagination
+import bases.projectors
 import bases.repositories
 import bases.sorting
 import bases.types
-import bases.projectors
-import bases.pagination
 from apps.users.models import UserModel
-from apps.users.permissions import IsAdmin
 from apps.users.repositories import UserRepository
-from apps.users.schemas import UserCreateSchema, UserLoginSchema, JWTRefreshSchema, JWTPayloadSchema, UserUpdateSchema
-from bases.exceptions import HandlerException, PermissionException, RepositoryException
+from apps.users.schemas import (
+    UserCreateSchema,
+    UserLoginSchema,
+    JWTRefreshSchema,
+    JWTPayloadSchema,
+    UserUpdateSchema,
+)
+from bases.exceptions import HandlerException, RepositoryException
 from settings import settings
 
 __all__ = ["UsersHandler"]
@@ -134,12 +139,7 @@ class UsersHandler:
         return {"acknowledged": result.acknowledged, "deleted_count": result.deleted_count}
 
     async def update_user(self, request: Request, _id: bases.types.OID, update: UserUpdateSchema):
-        try:
-            IsAdmin().check(request=request)
-            exclude_set = set()
-        except PermissionException:
-            exclude_set = UserModel.Config.update_by_admin_only
-        update_dict = update.dict(exclude_unset=True, exclude=exclude_set)
+        update_dict = update.dict(exclude_unset=True)
         if update_dict:
             password = update_dict.pop("password", None)
             if password is not None:

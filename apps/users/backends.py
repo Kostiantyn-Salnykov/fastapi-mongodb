@@ -11,21 +11,23 @@ from bases.exceptions import HandlerException
 class JWTTokenBackend(AuthenticationBackend):
     async def authenticate(self, conn: HTTPConnection):
         if "Authorization" not in conn.headers:
-            return
+            return AuthCredentials(), None
 
         auth_header = conn.headers["Authorization"]
         try:
             scheme, token = auth_header.split()
             if scheme.lower() != "bearer":
-                return
+                return AuthCredentials(), None
         except Exception as error:
             raise AuthenticationError("Invalid authentication credentials") from error
 
         try:
             payload: JWTPayloadSchema = UsersHandler.decode_jwt(token=token, convert_to=JWTPayloadSchema)
-            user_model: UserModel = await UsersHandler().retrieve_user(request=conn, query={"_id": payload.object_id})
+            user_model: UserModel = await UsersHandler().retrieve_user(
+                request=conn, query={"_id": payload.object_id, "is_active": True}
+            )
         except HandlerException as error:
             raise AuthenticationError(str(error)) from error
 
         # request.auth, request.user
-        return AuthCredentials(scopes=user_model.roles), user_model
+        return AuthCredentials(), user_model

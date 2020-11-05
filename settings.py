@@ -22,7 +22,7 @@ class Settings(pydantic.BaseSettings):
     PORT: int = pydantic.Field(default=9000)
     MONGO_URL: str = pydantic.Field(default="mongodb://0.0.0.0:27017")
     MONGO_DB_NAME: str = pydantic.Field(default="FastAPITemplate")
-    ORIGINS_LIST: list = pydantic.Field(default=["*"], env="ORIGINS")
+    ORIGINS_LIST: list[str] = pydantic.Field(default=["*"], env="ORIGINS")
     SECRET_KEY: str = pydantic.Field(default="SECRET")
     JWT_ACCESS_DELTA_MINUTES: int = pydantic.Field(default=1440)  # 30
     JWT_REFRESH_DELTA_MINUTES: int = pydantic.Field(default=1440)

@@ -9,17 +9,19 @@ import bases.types
 import bases.utils
 
 
+class BaseCreatedUpdatedModel:
+    created_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
+    updated_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
+
+
 class BaseMongoDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
     id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")
-    created_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
-    updated_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
 
     class Config(bases.config.BaseConfiguration):
         """configuration class"""
 
-        use_datetime_fields: bool = False
         sorting_fields: list[str] = []
         sorting_default: str = "-_id"
 
@@ -31,8 +33,6 @@ class BaseMongoDBModel(pydantic.BaseModel):
         _id = data.pop("_id", None)
         if _id is None:
             return cls(**data)  # projection flow with _id: False
-        if cls.Config.use_datetime_fields:
-            data["created_datetime"] = bases.utils.get_naive_datetime_from_object_id(object_id=_id)
         return cls(id=_id, **data)  # noqa
 
     def to_db(
@@ -62,18 +62,10 @@ class BaseMongoDBModel(pydantic.BaseModel):
         if "id" not in result:
             result["id"] = bson.ObjectId()
 
-        # if 'updated_datetime' already exists -> update it by current datetime
-        if self.Config.use_datetime_fields:
+        if BaseCreatedUpdatedModel in self.__class__.__bases__:
             result["updated_datetime"] = datetime.datetime.utcnow()
+            result["created_datetime"] = result["id"].generation_time.replace(tzinfo=None)
 
         # replace 'id' to '_id'
         result["_id"] = result.pop("id")
         return result
-
-    @property
-    def datetime_created(self):
-        """Retrieve created datetime for a document from MongoDB"""
-        try:
-            return bases.utils.get_naive_datetime_from_object_id(object_id=self.id)
-        except (KeyError, AttributeError) as error:
-            raise NotImplementedError("You should retrieve an '_id' field from MongoDB to use this property") from error
