@@ -2,10 +2,10 @@
 from starlette.authentication import AuthenticationBackend, AuthenticationError, AuthCredentials
 from starlette.requests import HTTPConnection
 
+import bases
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.schemas import JWTPayloadSchema
-from bases.exceptions import HandlerException
 
 
 class JWTTokenBackend(AuthenticationBackend):
@@ -26,7 +26,7 @@ class JWTTokenBackend(AuthenticationBackend):
             user_model: UserModel = await UsersHandler().retrieve_user(
                 request=conn, query={"_id": payload.object_id, "is_active": True}
             )
-        except HandlerException as error:
+        except bases.exceptions.HandlerException as error:
             raise AuthenticationError(str(error)) from error
 
         # request.auth, request.user

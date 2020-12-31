@@ -1,5 +1,5 @@
 import apps.users.models
-import bases.repositories
+import bases
 from apps.users.config import users_settings
 
 __all__ = ["UserRepository"]

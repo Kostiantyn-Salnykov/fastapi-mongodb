@@ -1,11 +1,25 @@
-version: "3"
+version: "3.7"
 
 services:
-  db:
-    image: mongo:latest
-    container_name: db
+  web:
+    env_file:
+      - .env
+    build:
+      context: ./
+      dockerfile: local.Dockerfile
+    restart: always
+    command: python run.py
+    volumes:
+      - ./:/app/
     ports:
-    - 27017:27017
+      - 9000:9000
+  db:
+    env_file:
+      - .env
+    image: mongo:latest
+    restart: always
+    ports:
+      - 27017:27017
     volumes:
       - mongodb_data:/data/db/
 

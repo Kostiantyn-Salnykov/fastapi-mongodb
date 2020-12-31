@@ -2,38 +2,38 @@ import fastapi
 import fastapi.middleware.cors
 from starlette.middleware.authentication import AuthenticationMiddleware
 
-import bases.db
+import bases
+import settings
 from apps.common.middlewares import MongoSessionMiddleware, ExceptionsMiddleware
 from apps.users.backends import JWTTokenBackend
 from apps.users.routers import users_router, login_router
-from settings import settings
 
-__all__ = ["app"]
+__all__ = ["App"]
 
-app = fastapi.FastAPI(
+App = fastapi.FastAPI(
     version="0.0.1",
-    debug=settings.DEBUG,
-    title=settings.PROJECT_NAME,
+    debug=settings.Settings.DEBUG,
+    title=settings.Settings.PROJECT_NAME,
     description="Quick start FastAPI project template",
     default_response_class=fastapi.responses.ORJSONResponse,
 )
 
 
-@app.on_event("startup")
+@App.on_event("startup")
 async def setup_db():
     """Create mongodb connection and indexes"""
-    bases.db.MongoDBConnection.create_mongo_connection()
+    bases.db.MongoDBHandler.create_client()
 
 
-@app.on_event("shutdown")
+@App.on_event("shutdown")
 async def close_db():
     """Close mongodb connection"""
-    bases.db.MongoDBConnection.close_mongo_connection()
+    bases.db.MongoDBHandler.delete_client()
 
 
-app.add_middleware(middleware_class=ExceptionsMiddleware)
+App.add_middleware(middleware_class=ExceptionsMiddleware)
 
-app.add_middleware(
+App.add_middleware(
     middleware_class=AuthenticationMiddleware,
     backend=JWTTokenBackend(),
     on_error=lambda conn, exc: fastapi.responses.ORJSONResponse(
@@ -41,16 +41,16 @@ app.add_middleware(
     ),
 )
 
-app.add_middleware(middleware_class=MongoSessionMiddleware)
+App.add_middleware(middleware_class=MongoSessionMiddleware)
 
-app.add_middleware(
+App.add_middleware(
     middleware_class=fastapi.middleware.cors.CORSMiddleware,
-    allow_origins=settings.ORIGINS_LIST,
+    allow_origins=settings.Settings.ORIGINS_LIST,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(router=users_router, tags=["users"])
+App.include_router(router=users_router, tags=["users"])
 
-app.include_router(router=login_router, tags=["authentication"])
+App.include_router(router=login_router, tags=["authentication"])

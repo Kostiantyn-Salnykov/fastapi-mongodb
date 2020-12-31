@@ -2,15 +2,15 @@ import typing
 
 import fastapi
 
-import bases.exceptions
-import bases.models
+import bases
 
 
-# TODO: check behavior for embedded models / fields
 class BaseProjector:
     def __init__(self, model_class: typing.Type[bases.models.BaseMongoDBModel]):
         self.model = model_class
         self._id_field = "_id"
+        self.fields_show = None
+        self.fields_hide = None
 
     def __call__(
         self,
@@ -42,7 +42,7 @@ class BaseProjector:
                 projection[striped_field] = show
 
         if self._id_field in projection:
-            projection.pop(self._id_field)
+            projection.pop(self._id_field)  # can't exclude '_id' field from response
         return projection
 
     def to_db(self) -> typing.Union[dict[str, bool], None]:

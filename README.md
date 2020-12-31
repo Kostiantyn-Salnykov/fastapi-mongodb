@@ -8,7 +8,17 @@
 
 ## Setup
 ```sh
-$ docker-compose up
-$ pipenv install
-$ python run.py
+docker-compose up
+pipenv install
+python run.py
+```
+
+## Tests
+```
+python -n unittest discover
+```
+## Coverage
+```
+coverage run -m unittest discover
+coverate report
 ```

@@ -3,7 +3,7 @@ import typing
 
 import pydantic
 
-import bases.config
+import bases.config  # noqa
 import bases.types
 
 

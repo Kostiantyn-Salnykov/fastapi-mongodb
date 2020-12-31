@@ -2,18 +2,15 @@ import binascii
 import datetime
 import hashlib
 import secrets
-from typing import List
 
+import fastapi
 import jwt
 import pymongo
-from fastapi import Request
-from pymongo.results import InsertOneResult
+import pymongo.errors
+import pymongo.results
 
-import bases.pagination
-import bases.projectors
-import bases.repositories
-import bases.sorting
-import bases.types
+import bases
+import settings
 from apps.users.models import UserModel
 from apps.users.repositories import UserRepository
 from apps.users.schemas import (
@@ -23,8 +20,6 @@ from apps.users.schemas import (
     JWTPayloadSchema,
     UserUpdateSchema,
 )
-from bases.exceptions import HandlerException, RepositoryException
-from settings import settings
 
 __all__ = ["UsersHandler"]
 
@@ -40,39 +35,41 @@ class UsersHandler:
             "id": _id,
             "exp": creation_datetime
             + datetime.timedelta(
-                minutes=settings.JWT_REFRESH_DELTA_MINUTES if refresh else settings.JWT_ACCESS_DELTA_MINUTES
+                minutes=settings.Settings.JWT_REFRESH_DELTA_MINUTES
+                if refresh
+                else settings.Settings.JWT_ACCESS_DELTA_MINUTES
             ),
             "iat": creation_datetime,
-            "iss": settings.JWT_ISSUER,
-            "aud": settings.JWT_REFRESH_AUDIENCE if refresh else settings.JWT_ACCESS_AUDIENCE,
+            "iss": settings.Settings.JWT_ISSUER,
+            "aud": settings.Settings.JWT_REFRESH_AUDIENCE if refresh else settings.Settings.JWT_ACCESS_AUDIENCE,
         }
-        return (jwt.encode(payload=payload, key=settings.SECRET_KEY)).decode("UTF-8")
+        return jwt.encode(payload=payload, key=settings.Settings.SECRET_KEY)
 
     @staticmethod
     def decode_jwt(token, refresh: bool = False, convert_to=None):
         try:
             payload = jwt.decode(
                 jwt=token,
-                key=settings.SECRET_KEY,
+                key=settings.Settings.SECRET_KEY,
                 algorithms=["HS256"],
-                issuer=settings.JWT_ISSUER,
-                audience=settings.JWT_REFRESH_AUDIENCE if refresh else settings.JWT_ACCESS_AUDIENCE,
+                issuer=settings.Settings.JWT_ISSUER,
+                audience=settings.Settings.JWT_REFRESH_AUDIENCE if refresh else settings.Settings.JWT_ACCESS_AUDIENCE,
             )
             if convert_to is not None:
                 payload = convert_to(**payload)
         except jwt.ExpiredSignatureError:
-            raise HandlerException("Token signature expired")
+            raise bases.exceptions.HandlerException("Token signature expired")
         except jwt.InvalidIssuerError:
-            raise HandlerException("Invalid token issuer")
+            raise bases.exceptions.HandlerException("Invalid token issuer")
         except jwt.InvalidAudienceError:
-            raise HandlerException("Invalid token audience")
+            raise bases.exceptions.HandlerException("Invalid token audience")
         except jwt.InvalidSignatureError:
-            raise HandlerException("Invalid token signature")
+            raise bases.exceptions.HandlerException("Invalid token signature")
         # base exceptions
         except jwt.DecodeError:
-            raise HandlerException("Can't decode token")
+            raise bases.exceptions.HandlerException("Can't decode token")
         except jwt.InvalidTokenError:
-            raise HandlerException("Invalid token")
+            raise bases.exceptions.HandlerException("Invalid token")
         else:
             return payload
 
@@ -100,69 +97,74 @@ class UsersHandler:
         new_password_hash = self.__hash(salt=salt, password=password)
         return salt + new_password_hash
 
-    async def create_user(self, request: Request, user: UserCreateSchema) -> dict:
+    async def create_user(self, request: fastapi.Request, user: UserCreateSchema) -> dict:
         """Create new user"""
         user_model = UserModel(
             password_hash=self.make_password(password=user.password), **user.dict(exclude_unset=True)
         )
-        result: InsertOneResult = await self.user_repository.insert_one(
-            document=user_model.to_db(),
-            session=request.state.mongo_session,
-        )
-        return {"acknowledged": result.acknowledged, "inserted_id": result.inserted_id}
+        try:
+            result: pymongo.results.InsertOneResult = await self.user_repository.insert_one(
+                document=user_model.to_db(),
+                session=request.state.mongo_session,
+            )
+        except pymongo.errors.DuplicateKeyError as error:
+            bases.handlers.mongo_duplicate_key_error_handler(model_name="User", fields=["email"], error=error)
+        else:
+            return {"acknowledged": result.acknowledged, "inserted_id": result.inserted_id}
 
-    async def retrieve_user(self, request: Request, query: dict):
-        result: UserModel = await self.user_repository.find_one(query=query, session=request.state.mongo_session)
-        return result
+    async def retrieve_user(self, request: fastapi.Request, query: dict):
+        return await self.user_repository.find_one(query=query, session=request.state.mongo_session)
 
     async def users_list(
         self,
-        request: Request,
+        request: fastapi.Request,
         query: dict,
-        sort_by: bases.sorting.BaseSort,
+        sort_by: bases.sorting.SortBuilder,
         paginator: bases.pagination.Paginator,
         projector: bases.projectors.BaseProjector,
     ):
-        result: List[UserModel] = await self.user_repository.find(
+        return await self.user_repository.find(
             query=query,
-            sort=sort_by.to_db(),
+            sort=sort_by.to_db(model=UserModel),
             skip=paginator.skip,
             limit=paginator.limit,
             session=request.state.mongo_session,
             projection=projector.to_db(),
             repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
         )
-        return result
 
-    async def delete_user(self, request: Request, query: dict):
+    async def delete_user(self, request: fastapi.Request, query: dict):
         result = await self.user_repository.delete_one(query=query, session=request.state.mongo_session)
         return {"acknowledged": result.acknowledged, "deleted_count": result.deleted_count}
 
-    async def update_user(self, request: Request, _id: bases.types.OID, update: UserUpdateSchema):
+    async def update_user(self, request: fastapi.Request, _id: bases.types.OID, update: UserUpdateSchema):
         update_dict = update.dict(exclude_unset=True)
         if update_dict:
             password = update_dict.pop("password", None)
             if password is not None:
                 update_dict["password_hash"] = self.make_password(password=password)
             update_dict["updated_datetime"] = datetime.datetime.utcnow()
-            user: UserModel = await self.user_repository.find_one_and_update(
+            user = await self.user_repository.find_one_and_update(
                 query={"_id": _id},
                 update={"$set": update_dict},
                 session=request.state.mongo_session,
                 return_document=pymongo.ReturnDocument.AFTER,
+                repository_config=bases.repositories.BaseRepositoryConfig(convert=False)
             )
         else:
-            user: UserModel = await self.user_repository.find_one(
-                query={"_id": _id}, session=request.state.mongo_session
+            user = await self.user_repository.find_one(
+                query={"_id": _id}, session=request.state.mongo_session,
+                repository_config=bases.repositories.BaseRepositoryConfig(convert=False)
             )
-        return user.dict()
+        user = UserModel.from_db(data=user)
+        return user
 
-    async def login(self, request: Request, credentials: UserLoginSchema) -> dict:
+    async def login(self, request: fastapi.Request, credentials: UserLoginSchema) -> dict:
         try:
             user: UserModel = await self.retrieve_user(
                 request=request, query={"email": credentials.email, "is_active": True}
             )
-        except RepositoryException:
+        except bases.exceptions.RepositoryException:
             pass
         else:
             if self.check_password(password=credentials.password, password_hash=user.password_hash):
@@ -170,7 +172,7 @@ class UsersHandler:
                     "access": self.encode_jwt(_id=str(user.id)),
                     "refresh": self.encode_jwt(_id=str(user.id), refresh=True),
                 }
-        raise HandlerException("Invalid credentials.")
+        raise bases.exceptions.HandlerException("Invalid credentials.")
 
     async def refresh(self, data: JWTRefreshSchema) -> dict:
         payload: JWTPayloadSchema = self.decode_jwt(token=data.refresh, refresh=True, convert_to=JWTPayloadSchema)

@@ -1,17 +1,24 @@
-from typing import Optional
+import typing
 
 import pydantic
+import pymongo
 
-from bases.models import BaseMongoDBModel, BaseCreatedUpdatedModel
+import bases
 
 
-class UserModel(BaseMongoDBModel, BaseCreatedUpdatedModel):
+class Address(bases.models.BaseMongoDBModel):
+    country: str
+    city: str
+
+
+class UserModel(bases.models.BaseCreatedUpdatedModel, bases.models.BaseMongoDBModel):
     email: pydantic.EmailStr
-    first_name: Optional[str] = pydantic.Field(default=None)
-    last_name: Optional[str] = pydantic.Field(default=None)
-    password_hash: Optional[str]
-    is_active: Optional[bool] = pydantic.Field(default=True)
+    first_name: typing.Optional[str] = pydantic.Field(default=None)
+    last_name: typing.Optional[str] = pydantic.Field(default=None)
+    password_hash: typing.Optional[str]
+    is_active: typing.Optional[bool] = pydantic.Field(default=True)
+    address: typing.Optional[Address]
 
-    class Config(BaseMongoDBModel.Config):
-        sorting_default = "email"
-        sorting_fields = ["email", "first_name", "last_name"]
+    class Config(bases.models.BaseMongoDBModel.Config):
+        sorting_default = [("email", pymongo.ASCENDING)]
+        sorting_fields = ["_id", "email", "first_name", "last_name"]

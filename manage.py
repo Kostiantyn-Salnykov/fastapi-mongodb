@@ -1,10 +1,9 @@
 import importlib.util
-from typing import List
 
 import pydantic
 import typer
 
-import bases.utils
+import bases
 from apps.users.commands import users_commands
 from settings import settings
 
@@ -13,7 +12,7 @@ app.add_typer(typer_instance=users_commands)
 
 
 @app.command(name="setup_apps")
-@bases.utils.MakeAsync()
+@bases.helpers.MakeAsync()
 async def setup_apps():
     apps_directory = settings.BASE_DIR / "apps"
     if apps_directory.is_dir():
@@ -30,7 +29,7 @@ async def setup_apps():
 
 
 @app.command(name="createapp")
-@bases.utils.MakeAsync()
+@bases.helpers.MakeAsync()
 async def creteapp():
     apps_directory = settings.BASE_DIR / "apps"
 
@@ -40,7 +39,7 @@ async def creteapp():
 
     class AppFile(pydantic.BaseModel):
         file_name: str
-        path: List[str]
+        path: list[str]
         content: str
 
     files_to_create = [
@@ -72,8 +71,7 @@ def get_settings() -> {capitalized_app_name}Settings:
             path=[app_name],
             content=f"""import typer
 
-import bases.db
-import bases.utils
+import bases
 from apps.{app_name}.config import {app_name}_settings
 
 __all__ = ["{app_name}_commands"]
@@ -83,11 +81,11 @@ __all__ = ["{app_name}_commands"]
 
 
 async def setup_app():
-    await bases.db.MongoDBConnection.make_collection(col_name={app_name}_settings.{upper_app_name}_COL)
+    await bases.db.MongoDBConnection.create_collection(name={app_name}_settings.{upper_app_name}_COL)
 
 
 @{app_name}_commands.command(name="setup")
-@bases.utils.MakeAsync()
+@bases.helpers.MakeAsync()
 async def setup():
     await setup_app()
 """,

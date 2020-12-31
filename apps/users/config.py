@@ -1,4 +1,4 @@
-from functools import lru_cache
+import functools
 
 import pydantic
 
@@ -9,7 +9,7 @@ class UsersSettings(pydantic.BaseSettings):
     USERS_COL: str = pydantic.Field(default="users")
 
 
-@lru_cache()
+@functools.lru_cache()
 def get_settings() -> UsersSettings:
     return UsersSettings()
 

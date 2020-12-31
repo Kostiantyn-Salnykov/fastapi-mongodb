@@ -1,50 +1,56 @@
 import datetime
-from typing import Optional
+import typing
 
 import bson
 import pydantic
 
-import bases.types
-from bases.schemas import CreatedUpdatedBaseSchema, BaseSchema
+import bases
 
 
-# TODO: Make fields.py to remove code duplication
-class BaseUserSchema(BaseSchema, CreatedUpdatedBaseSchema):
-    id: Optional[bases.types.OID] = pydantic.Field(alias="_id")
-    email: Optional[pydantic.EmailStr]
-    first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
-    last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
-    is_active: Optional[bool]
+class AddressSchema(bases.schemas.BaseSchema):
+    country: typing.Optional[str]
+    city: typing.Optional[str]
 
 
-class UserCreateSchema(BaseSchema):
+# TODO (Make fields.py to remove code duplication) kost:
+class BaseUserSchema(bases.schemas.BaseSchema, bases.schemas.CreatedUpdatedBaseSchema):
+    id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")
+    email: typing.Optional[pydantic.EmailStr]
+    first_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Jason")
+    last_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
+    is_active: typing.Optional[bool]
+    address: typing.Optional[AddressSchema]
+
+
+class UserCreateSchema(bases.schemas.BaseSchema):
     email: pydantic.EmailStr
-    first_name: Optional[str] = pydantic.Field(max_length=256, example="Jason")
-    last_name: Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
+    first_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Jason")
+    last_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
     password: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
 
 
 class UserUpdateSchema(UserCreateSchema):
-    email: Optional[pydantic.EmailStr]
-    password: Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-    is_active: Optional[bool]
+    email: typing.Optional[pydantic.EmailStr]
+    password: typing.Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
+    is_active: typing.Optional[bool]
+    address: typing.Optional[AddressSchema]
 
 
-class UserLoginSchema(BaseSchema):
+class UserLoginSchema(bases.schemas.BaseSchema):
     email: pydantic.EmailStr
     password: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
 
 
-class JWTSchema(BaseSchema):
-    access: Optional[str]
-    refresh: Optional[str]
+class JWTSchema(bases.schemas.BaseSchema):
+    access: typing.Optional[str]
+    refresh: typing.Optional[str]
 
 
-class JWTRefreshSchema(BaseSchema):
+class JWTRefreshSchema(bases.schemas.BaseSchema):
     refresh: pydantic.constr(max_length=4096)
 
 
-class JWTPayloadSchema(BaseSchema):
+class JWTPayloadSchema(bases.schemas.BaseSchema):
     id: str = pydantic.Field()
     exp: datetime.datetime
     iat: datetime.datetime

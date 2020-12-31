@@ -1,0 +1,17 @@
+[run]
+branch = True
+omit = */.local/*, */.idea/*, *./venv/*, *test*, *__init__*, *run.py
+
+[report]
+# show_missing = True
+ignore_errors = True
+sort = Cover
+precision = 4
+omit = */.local/*, */.idea/*, *./venv/*, *test*, *__init__*, *run.py
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ = .__main__.:
+
+[html]
+directory = coverage_html_report

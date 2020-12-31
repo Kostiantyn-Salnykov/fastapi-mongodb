@@ -1,5 +1,5 @@
 """Common apps exceptions"""
-from fastapi import status
+import fastapi
 
 
 class PermissionException(Exception):
@@ -8,7 +8,7 @@ class PermissionException(Exception):
     def __init__(
         self,
         detail: str = "You aren't authorized to make this action.",
-        status_code: int = status.HTTP_403_FORBIDDEN,
+        status_code: int = fastapi.status.HTTP_403_FORBIDDEN,
     ):
         super().__init__()
         self.detail = detail
@@ -26,7 +26,7 @@ class NotFoundHandlerException(HandlerException):
 class RepositoryException(Exception):
     """Exception that raises in repositories"""
 
-    def __init__(self, detail: str = "", status_code: int = status.HTTP_400_BAD_REQUEST):
+    def __init__(self, detail: str = "", status_code: int = fastapi.status.HTTP_400_BAD_REQUEST):
         super().__init__()
-        self.detail = detail or "Repository exception"
+        self.detail = detail or "Repository exception."
         self.status_code = status_code

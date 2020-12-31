@@ -6,6 +6,7 @@ verify_ssl = true
 [dev-packages]
 pylint = "*"
 black = "*"
+flake8 = "*"
 
 [packages]
 fastapi = "*"
@@ -18,6 +19,8 @@ ipython = "*"
 pymongo = {extras = ["tls", "srv"],version = "*"}
 pyjwt = "*"
 gunicorn = "*"
+coverage = "*"
+faker = "*"
 
 [requires]
 python_version = "3.9"

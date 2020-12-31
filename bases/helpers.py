@@ -3,14 +3,12 @@ import functools
 import typing
 import unittest
 import unittest.mock
+import faker
+import motor.motor_asyncio
+import pymongo
 
-import bson
-
-import bases.types
-
-
-def get_naive_datetime_from_object_id(object_id: typing.Union[bson.ObjectId, bases.types.OID]):
-    return object_id.generation_time.replace(tzinfo=None)
+import bases
+import settings
 
 
 class MakeAsync:
@@ -22,7 +20,9 @@ class MakeAsync:
         return wrapper
 
 
-class AsyncCaseWithPatching(unittest.IsolatedAsyncioTestCase):
+class AsyncTestCaseWithPathing(unittest.IsolatedAsyncioTestCase):
+    faker = faker.Faker()
+
     def __setup_cleanup_and_get_mock(self, patcher):
         mock_instance = patcher.start()
         self.addCleanup(patcher.stop)
@@ -63,3 +63,30 @@ class AsyncCaseWithPatching(unittest.IsolatedAsyncioTestCase):
                 """exit from content manager"""
 
         return unittest.mock.AsyncMock(new=AsyncContextManager)
+
+
+class MongoDBTestCase(AsyncTestCaseWithPathing):
+    TEST_DB_NAME = settings.Settings.MONGO_TEST_DB_NAME
+
+    @staticmethod
+    def _get_client_for_test():
+        return motor.motor_asyncio.AsyncIOMotorClient(settings.Settings.MONGO_TEST_URL)
+
+    async def _remove_test_database(self):
+        await bases.db.MongoDBHandler.delete_database(name=self.TEST_DB_NAME)
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._mongo_client: pymongo.MongoClient = self._get_client_for_test()
+        self.patch_obj(
+            target=bases.db.MongoDBHandler,
+            attribute="retrieve_client",
+            return_value=self._mongo_client
+        )
+        self.patch_obj(
+            target=bases.db.MongoDBHandler,
+            attribute="retrieve_database",
+            return_value=bases.db.MongoDBHandler.retrieve_database(name=self.TEST_DB_NAME),
+        )
+        self.addAsyncCleanup(self._remove_test_database)
+        self.addClassCleanup(self._mongo_client.close)

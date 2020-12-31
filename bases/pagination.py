@@ -1,7 +1,7 @@
 import fastapi
 import pydantic
 
-import bases.config
+import bases
 
 
 class Paginator(pydantic.BaseModel):
