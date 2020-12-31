@@ -15,7 +15,7 @@ python run.py
 
 ## Tests
 ```
-python -n unittest discover
+python -m unittest discover
 ```
 ## Coverage
 ```
