@@ -15,7 +15,7 @@ class BaseRepositoryConfig:
     def __init__(
         self,
         convert: bool = True,
-        convert_to: typing.Type[bases.models.BaseMongoDBModel] = None,
+        convert_to: typing.Type[bases.models.BaseDBModel] = None,
         raise_not_found: bool = True,
     ):
         self.convert = convert
@@ -23,9 +23,9 @@ class BaseRepositoryConfig:
         if self.convert:
             if self.convert_to is None:
                 raise NotImplementedError("Set 'convert_to' attribute or set 'convert' to False")
-            if not inspect.isclass(self.convert_to) or not issubclass(self.convert_to, bases.models.BaseMongoDBModel):
+            if not inspect.isclass(self.convert_to) or not issubclass(self.convert_to, bases.models.BaseDBModel):
                 raise NotImplementedError(
-                    f"'convert_to' kwarg must be a subclass from '{bases.models.BaseMongoDBModel.__name__}'"
+                    f"'convert_to' kwarg must be a subclass from '{bases.models.BaseDBModel.__name__}'"
                 )
         self.raise_not_found = raise_not_found
 
@@ -35,7 +35,7 @@ class BaseRepository:
 
     def __init__(self, *, col_name: str, obj_name: str, repository_config: BaseRepositoryConfig):
         self.obj_name: str = obj_name
-        self._db: pymongo.database.Database = bases.db.MongoDBHandler.retrieve_database()
+        self._db: pymongo.database.Database = bases.db.DBHandler.retrieve_database()
         self.col: pymongo.collection.Collection = self._db[col_name]
         self.repository_config: BaseRepositoryConfig = repository_config
 

@@ -4,7 +4,7 @@ from starlette.middleware.authentication import AuthenticationMiddleware
 
 import bases
 import settings
-from apps.common.middlewares import MongoSessionMiddleware, ExceptionsMiddleware
+from apps.common.middlewares import DBSessionMiddleware, ExceptionsMiddleware
 from apps.users.backends import JWTTokenBackend
 from apps.users.routers import users_router, login_router
 
@@ -22,13 +22,13 @@ App = fastapi.FastAPI(
 @App.on_event("startup")
 async def setup_db():
     """Create mongodb connection and indexes"""
-    bases.db.MongoDBHandler.create_client()
+    bases.db.DBHandler.create_client()
 
 
 @App.on_event("shutdown")
 async def close_db():
     """Close mongodb connection"""
-    bases.db.MongoDBHandler.delete_client()
+    bases.db.DBHandler.delete_client()
 
 
 App.add_middleware(middleware_class=ExceptionsMiddleware)
@@ -41,7 +41,7 @@ App.add_middleware(
     ),
 )
 
-App.add_middleware(middleware_class=MongoSessionMiddleware)
+App.add_middleware(middleware_class=DBSessionMiddleware)
 
 App.add_middleware(
     middleware_class=fastapi.middleware.cors.CORSMiddleware,

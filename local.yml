@@ -22,6 +22,20 @@ services:
       - 27017:27017
     volumes:
       - mongodb_data:/data/db/
+  redis:
+    env_file:
+      - .env
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    restart: always
+  redis-insights:
+    image: redislabs/redisinsight
+    ports:
+      - "8001:8001"
+    restart: always
+    depends_on:
+      - redis
 
 volumes:
   mongodb_data:

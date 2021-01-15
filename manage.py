@@ -5,7 +5,7 @@ import typer
 
 import bases
 from apps.users.commands import users_commands
-from settings import settings
+import settings
 
 app = typer.Typer(name="FastAPI commands")
 app.add_typer(typer_instance=users_commands)
@@ -14,7 +14,7 @@ app.add_typer(typer_instance=users_commands)
 @app.command(name="setup_apps")
 @bases.helpers.MakeAsync()
 async def setup_apps():
-    apps_directory = settings.BASE_DIR / "apps"
+    apps_directory = settings.Settings.BASE_DIR / "apps"
     if apps_directory.is_dir():
         for application in apps_directory.iterdir():
             if application.is_dir():
@@ -31,7 +31,7 @@ async def setup_apps():
 @app.command(name="createapp")
 @bases.helpers.MakeAsync()
 async def creteapp():
-    apps_directory = settings.BASE_DIR / "apps"
+    apps_directory = settings.Settings.BASE_DIR / "apps"
 
     app_name: str = (typer.prompt(text="Enter name of application", type=str)).lower()
     capitalized_app_name = app_name.capitalize()
@@ -81,7 +81,7 @@ __all__ = ["{app_name}_commands"]
 
 
 async def setup_app():
-    await bases.db.MongoDBConnection.create_collection(name={app_name}_settings.{upper_app_name}_COL)
+    await bases.db.DBHandler.create_collection(name={app_name}_settings.{upper_app_name}_COL)
 
 
 @{app_name}_commands.command(name="setup")

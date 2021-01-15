@@ -7,6 +7,8 @@ verify_ssl = true
 pylint = "*"
 black = "*"
 flake8 = "*"
+factory-boy = "*"
+v = {editable = true,version = "*"}
 
 [packages]
 fastapi = "*"
@@ -17,10 +19,10 @@ typer = "*"
 motor = "*"
 ipython = "*"
 pymongo = {extras = ["tls", "srv"],version = "*"}
-pyjwt = "*"
 gunicorn = "*"
 coverage = "*"
 faker = "*"
+authlib = "*"
 
 [requires]
 python_version = "3.9"

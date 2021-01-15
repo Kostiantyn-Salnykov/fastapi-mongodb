@@ -3,6 +3,8 @@ from starlette.authentication import AuthenticationBackend, AuthenticationError,
 from starlette.requests import HTTPConnection
 
 import bases
+from apps.common.enums import CodeAudiences
+from apps.common.handlers import TokensHandler
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.schemas import JWTPayloadSchema
@@ -22,7 +24,9 @@ class JWTTokenBackend(AuthenticationBackend):
             raise AuthenticationError("Invalid authentication credentials") from error
 
         try:
-            payload: JWTPayloadSchema = UsersHandler.decode_jwt(token=token, convert_to=JWTPayloadSchema)
+            payload: JWTPayloadSchema = TokensHandler.read_code(
+                code=token, aud=CodeAudiences.ACCESS_TOKEN, convert_to=JWTPayloadSchema
+            )
             user_model: UserModel = await UsersHandler().retrieve_user(
                 request=conn, query={"_id": payload.object_id, "is_active": True}
             )

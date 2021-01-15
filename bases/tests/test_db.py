@@ -1,5 +1,5 @@
 import typing
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call as mock_call
 
 import motor.motor_asyncio
 import pymongo
@@ -131,6 +131,15 @@ class TestServerLogger(bases.helpers.AsyncTestCaseWithPathing):
             f"to {self.event.new_description.server_type_name}"
         )
 
+    def test_description_changed_same_server_type(self):
+        expected_mock = MagicMock()
+        self.event.previous_description = expected_mock
+        self.event.new_description = expected_mock
+
+        self.logger.description_changed(event=self.event)
+
+        self.debug_mock.assert_not_called()
+
     def test_closed(self):
         self.logger.closed(event=self.event)
 
@@ -184,15 +193,28 @@ class TestTopologyLogger(bases.helpers.AsyncTestCaseWithPathing):
 
         self.debug_mock.assert_has_calls(
             calls=[
-                call(f"Topology description updated for topology id {self.event.topology_id}"),
-                call(
+                mock_call(f"Topology description updated for topology id {self.event.topology_id}"),
+                mock_call(
                     f"Topology {self.event.topology_id} changed type from "
                     f"{self.event.previous_description.topology_type_name} to "
                     f"{self.event.new_description.topology_type_name}"
                 ),
-                call("No writable servers available."),
-                call("No readable servers available."),
+                mock_call("No writable servers available."),
+                mock_call("No readable servers available."),
             ]
+        )
+
+    def test_description_changed_not_changed(self):
+        expected_mock = MagicMock()
+        self.event.previous_description.topology_type = expected_mock
+        self.event.new_description.topology_type = expected_mock
+        self.event.new_description.has_writable_server.return_value = True
+        self.event.new_description.has_readable_server.return_value = True
+
+        self.logger.description_changed(event=self.event)
+
+        self.debug_mock.assert_called_once_with(
+            f"Topology description updated for topology id {self.event.topology_id}"
         )
 
     def test_closed(self):
@@ -201,40 +223,64 @@ class TestTopologyLogger(bases.helpers.AsyncTestCaseWithPathing):
         self.debug_mock.assert_called_once_with(f"Topology with id {self.event.topology_id} closed")
 
 
-class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
+class TestMongoDBHandlerBase(bases.helpers.AsyncTestCaseWithPathing):
     def setUp(self) -> None:
-        super().setUp()
-        self.test_db_name = settings.Settings.MONGO_TEST_DB_NAME
-        self.mongo_handler = bases.db.MongoDBHandler()
+        self.db_handler = bases.db.DBHandler()
         self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
 
     def test_retrieve_client(self):
-        result = self.mongo_handler.retrieve_client()
+        self.patch_obj(target=settings.Settings, attribute="MONGO_URL", new=settings.Settings.MONGO_TEST_URL)
+
+        result = self.db_handler.retrieve_client()
+
+        self.debug_mock.assert_has_calls(
+            calls=[mock_call(msg="Initialization of MongoDB"), mock_call(msg="Creating MongoDB client")]
+        )
+        self.assertIsInstance(result, motor.motor_asyncio.AsyncIOMotorClient)
+
+    def test_retrieve_database(self):
+        self.patch_obj(target=settings.Settings, attribute="MONGO_DB_NAME", new=settings.Settings.MONGO_TEST_DB_NAME)
+
+        result = self.db_handler.retrieve_database()
+
+        self.assertIsInstance(result, motor.motor_asyncio.AsyncIOMotorDatabase)
+        self.assertEqual(result.name, settings.Settings.MONGO_TEST_DB_NAME)
+
+
+class TestDBHandler(bases.helpers.MongoDBTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.test_db_name = settings.Settings.MONGO_TEST_DB_NAME
+        self.db_handler = bases.db.DBHandler()
+        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+
+    def test_retrieve_client(self):
+        result = self.db_handler.retrieve_client()
 
         self.assertEqual(self._get_client_for_test(), result)
 
     def test_create_client(self):
-        self.assertIsNone(self.mongo_handler.client)
+        self.assertIsNone(self.db_handler.client)
 
-        self.mongo_handler.create_client()
+        self.db_handler.create_client()
 
-        self.assertIsInstance(self.mongo_handler.client, motor.motor_asyncio.AsyncIOMotorClient)
+        self.assertIsInstance(self.db_handler.client, motor.motor_asyncio.AsyncIOMotorClient)
 
     def test_delete_client(self):
-        self.assertIsInstance(self.mongo_handler.client, motor.motor_asyncio.AsyncIOMotorClient)
+        self.assertIsInstance(self.db_handler.client, motor.motor_asyncio.AsyncIOMotorClient)
 
-        self.mongo_handler.delete_client()
+        self.db_handler.delete_client()
 
-        self.assertIsNone(self.mongo_handler.client)
+        self.assertIsNone(self.db_handler.client)
 
     async def test_get_server_info(self):
-        result = await self.mongo_handler.get_server_info()
+        result = await self.db_handler.get_server_info()
 
         self.assertIsInstance(result, dict)
         self.assertEqual(result["ok"], 1.0)
 
     def test_retrieve_database(self):
-        result = self.mongo_handler.retrieve_database()
+        result = self.db_handler.retrieve_database()
 
         self.assertIsInstance(result, motor.motor_asyncio.AsyncIOMotorDatabase)
         self.assertEqual(result.name, settings.Settings.MONGO_TEST_DB_NAME)
@@ -242,41 +288,41 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
     async def test_list_databases(self):
         _required_dbs = ["admin", "config", "local"]  # MongoDB predefined DBs
 
-        result: list[dict[str, typing.Any]] = await self.mongo_handler.list_databases()
+        result: list[dict[str, typing.Any]] = await self.db_handler.list_databases()
 
         self.assertTrue(all(required_db in [db["name"] for db in result] for required_db in _required_dbs))
 
-        result2: list[str] = await self.mongo_handler.list_databases(only_names=True)
+        result2: list[str] = await self.db_handler.list_databases(only_names=True)
 
         self.assertTrue(all(required_db in result2 for required_db in _required_dbs))
 
     async def test_delete_database(self):
-        await self.mongo_handler.create_collection(name=self.faker.pystr(), db_name=self.faker.pystr())
-        db_names = await self.mongo_handler.list_databases(only_names=True)
+        await self.db_handler.create_collection(name=self.faker.pystr(), db_name=self.faker.pystr())
+        db_names = await self.db_handler.list_databases(only_names=True)
         self.assertIn(self.test_db_name, db_names)
 
-        await self.mongo_handler.delete_database(name=self.test_db_name)
+        await self.db_handler.delete_database(name=self.test_db_name)
 
-        updated_db_names = await self.mongo_handler.list_databases(only_names=True)
+        updated_db_names = await self.db_handler.list_databases(only_names=True)
 
         self.assertNotIn(self.test_db_name, updated_db_names)
 
     async def test_set_get_profiling_level(self):
         default_level = pymongo.OFF  # default level is 0
         new_level = pymongo.SLOW_ONLY
-        self.assertEqual(default_level, await self.mongo_handler.get_profiling_level(db_name=self.test_db_name))
+        self.assertEqual(default_level, await self.db_handler.get_profiling_level(db_name=self.test_db_name))
 
-        await self.mongo_handler.set_profiling_level(db_name=self.test_db_name, level=new_level, slow_ms=10)
+        await self.db_handler.set_profiling_level(db_name=self.test_db_name, level=new_level, slow_ms=10)
 
-        self.assertEqual(new_level, await self.mongo_handler.get_profiling_level(db_name=self.test_db_name))
+        self.assertEqual(new_level, await self.db_handler.get_profiling_level(db_name=self.test_db_name))
 
     async def test_get_profiling_info(self):
         col_name = self.faker.pystr()
         level, op, ns = pymongo.ALL, "command", f"{self.test_db_name}.{col_name}"
-        await self.mongo_handler.set_profiling_level(db_name=self.test_db_name, level=level)
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.set_profiling_level(db_name=self.test_db_name, level=level)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
-        result = await self.mongo_handler.get_profiling_info(db_name=self.test_db_name)
+        result = await self.db_handler.get_profiling_info(db_name=self.test_db_name)
 
         self.assertIsInstance(result, list)
         self.assertEqual(op, result[0]["op"])
@@ -284,12 +330,12 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
 
     async def test_create_collection(self):
         col_name = self.faker.pystr()
-        col_names = await self.mongo_handler.list_collections(db_name=self.test_db_name, only_names=True)
+        col_names = await self.db_handler.list_collections(db_name=self.test_db_name, only_names=True)
         self.assertNotIn(col_name, col_names)
 
-        collection = await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        collection = await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
-        updated_col_names = await self.mongo_handler.list_collections(db_name=self.test_db_name, only_names=True)
+        updated_col_names = await self.db_handler.list_collections(db_name=self.test_db_name, only_names=True)
         self.assertIn(col_name, updated_col_names)
         self.assertIsInstance(collection, motor.motor_asyncio.AsyncIOMotorCollection)
         self.assertEqual(col_name, collection.name)
@@ -297,53 +343,54 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
 
     async def test_create_collection_not_safe(self):
         col_name = self.faker.pystr()
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
         with self.assertRaises(pymongo.errors.CollectionInvalid) as exception_context:
-            await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name, safe=False)
+            await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name, safe=False)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
         self.assertEqual(f"collection {col_name} already exists", str(exception_context.exception))
 
     async def test_delete_collection(self):
         col_name = self.faker.pystr()
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
-        col_names = await self.mongo_handler.list_collections(db_name=self.test_db_name, only_names=True)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        col_names = await self.db_handler.list_collections(db_name=self.test_db_name, only_names=True)
         self.assertIn(col_name, col_names)
 
-        await self.mongo_handler.delete_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.delete_collection(name=col_name, db_name=self.test_db_name)
 
-        updated_col_names = await self.mongo_handler.list_collections(db_name=self.test_db_name, only_names=True)
+        updated_col_names = await self.db_handler.list_collections(db_name=self.test_db_name, only_names=True)
         self.assertNotIn(col_name, updated_col_names)
 
     async def test_list_collections(self):
         col_name, col_type = self.faker.pystr(), "collection"
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
-        result: list[dict[str, typing.Any]] = await self.mongo_handler.list_collections(db_name=self.test_db_name)
+        result: list[dict[str, typing.Any]] = await self.db_handler.list_collections(db_name=self.test_db_name)
 
         self.assertEqual(col_name, result[0]["name"])
         self.assertEqual(col_type, result[0]["type"])
 
     async def test_list_collections_only_names(self):
         col_name = self.faker.pystr()
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
-        result = await self.mongo_handler.list_collections(db_name=self.test_db_name, only_names=True)
+        result = await self.db_handler.list_collections(db_name=self.test_db_name, only_names=True)
 
         self.assertIn(col_name, result)
 
     async def test_create_index(self):
         index_name, col_name = self.faker.pystr(), self.faker.pystr()
-        indexes_names = await self.mongo_handler.list_indexes(
+        indexes_names = await self.db_handler.list_indexes(
             col_name=col_name, db_name=self.test_db_name, only_names=True
         )
         self.assertNotIn(index_name, indexes_names)
 
-        result = await self.mongo_handler.create_index(
+        result = await self.db_handler.create_index(
             col_name=col_name, db_name=self.test_db_name, name=index_name, index=[("test", pymongo.ASCENDING)]
         )
 
-        updated_indexes_names = await self.mongo_handler.list_indexes(
+        updated_indexes_names = await self.db_handler.list_indexes(
             col_name=col_name, db_name=self.test_db_name, only_names=True
         )
         self.assertIn(index_name, updated_indexes_names)
@@ -356,23 +403,23 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
             pymongo.IndexModel(name=index_name2, keys=[("test2", pymongo.DESCENDING)]),
         ]
 
-        result = await self.mongo_handler.create_indexes(col_name=col_name, db_name=self.test_db_name, indexes=indexes)
+        result = await self.db_handler.create_indexes(col_name=col_name, db_name=self.test_db_name, indexes=indexes)
 
         self.assertEqual([index_name, index_name2], result)
 
     async def test_delete_index(self):
         index_name, col_name = self.faker.pystr(), self.faker.pystr()
-        await self.mongo_handler.create_index(
+        await self.db_handler.create_index(
             col_name=col_name, db_name=self.test_db_name, name=index_name, index=[("test", pymongo.ASCENDING)]
         )
-        indexes_names = await self.mongo_handler.list_indexes(
+        indexes_names = await self.db_handler.list_indexes(
             col_name=col_name, db_name=self.test_db_name, only_names=True
         )
         self.assertIn(index_name, indexes_names)
 
-        await self.mongo_handler.delete_index(col_name=col_name, db_name=self.test_db_name, name=index_name)
+        await self.db_handler.delete_index(col_name=col_name, db_name=self.test_db_name, name=index_name)
 
-        updated_indexes_names = await self.mongo_handler.list_indexes(
+        updated_indexes_names = await self.db_handler.list_indexes(
             col_name=col_name, db_name=self.test_db_name, only_names=True
         )
         self.assertNotIn(index_name, updated_indexes_names)
@@ -383,24 +430,25 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
             "ok": 0.0,
             "errmsg": f"index not found with name [{index_name}]",
             "code": 27,
-            "codeName": "IndexNotFound"
+            "codeName": "IndexNotFound",
         }
-        await self.mongo_handler.create_collection(name=col_name, db_name=self.test_db_name)
+        await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
         with self.assertRaises(pymongo.errors.OperationFailure) as exception_context:
-            await self.mongo_handler.delete_index(
+            await self.db_handler.delete_index(
                 col_name=col_name, db_name=self.test_db_name, name=index_name, safe=False
             )
+        await self.db_handler.delete_index(col_name=col_name, db_name=self.test_db_name, name=index_name)
 
         self.assertDictEqual(expected_exception_details, exception_context.exception.details)
 
     async def test_list_indexes_names(self):
         index_name, col_name = self.faker.pystr(), self.faker.pystr()
-        await self.mongo_handler.create_index(
+        await self.db_handler.create_index(
             col_name=col_name, db_name=self.test_db_name, name=index_name, index=[("test", pymongo.ASCENDING)]
         )
 
-        result = await self.mongo_handler.list_indexes(col_name=col_name, db_name=self.test_db_name, only_names=True)
+        result = await self.db_handler.list_indexes(col_name=col_name, db_name=self.test_db_name, only_names=True)
 
         self.assertIn(index_name, result)
 
@@ -408,11 +456,11 @@ class TestMongoDBHandler(bases.helpers.MongoDBTestCase):
         index_name, col_name = self.faker.pystr(), self.faker.pystr()
         index_key, index_order = "test", pymongo.ASCENDING
         index_keys = [(index_key, index_order)]
-        await self.mongo_handler.create_index(
+        await self.db_handler.create_index(
             col_name=col_name, db_name=self.test_db_name, name=index_name, index=index_keys
         )
 
-        result = await self.mongo_handler.list_indexes(col_name=col_name, db_name=self.test_db_name)
+        result = await self.db_handler.list_indexes(col_name=col_name, db_name=self.test_db_name)
 
         created_index_son = result[-1]
         self.assertEqual(index_name, created_index_son["name"])

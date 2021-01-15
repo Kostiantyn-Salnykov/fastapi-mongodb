@@ -6,7 +6,7 @@ import bases
 
 
 class BaseProjector:
-    def __init__(self, model_class: typing.Type[bases.models.BaseMongoDBModel]):
+    def __init__(self, model_class: typing.Type[bases.models.BaseDBModel]):
         self.model = model_class
         self._id_field = "_id"
         self.fields_show = None

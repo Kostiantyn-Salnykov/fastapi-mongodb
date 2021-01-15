@@ -13,7 +13,7 @@ import pymongo.read_concern
 import bases
 import settings
 
-__all__ = ["mongo_handler"]
+__all__ = ["db_handler"]
 
 
 # TODO (Optimize messages for loggers) kost:
@@ -80,7 +80,6 @@ class ServerLogger(pymongo.monitoring.ServerListener):
         previous_server_type = event.previous_description.server_type
         new_server_type = event.new_description.server_type
         if new_server_type != previous_server_type:
-            # server_type_name was added in PyMongo 3.4
             bases.logging.logger.debug(
                 f"Server {event.server_address} changed type from {event.previous_description.server_type_name} to "
                 f"{event.new_description.server_type_name}"
@@ -138,7 +137,7 @@ if settings.Settings.DEBUG:  # pragma: no cover
         pymongo.monitoring.register(listener=TopologyLogger())
 
 
-class MongoDBHandler:
+class DBHandler:
     """Class hold MongoDB client connection"""
 
     client: pymongo.MongoClient = None
@@ -146,10 +145,10 @@ class MongoDBHandler:
     @classmethod
     def retrieve_client(cls) -> pymongo.MongoClient:
         """Retrieve existing MongoDB client or create it (at first call)"""
-        if cls.client is None or not hasattr(cls, "client") or not cls.client:
+        if cls.client is None:
             bases.logging.logger.debug(msg="Initialization of MongoDB")
             cls.create_client()
-        return mongo_handler.client
+        return cls.client
 
     @classmethod
     def create_client(cls):
@@ -162,7 +161,7 @@ class MongoDBHandler:
         """Closing MongoDB client"""
         bases.logging.logger.debug(msg="Disconnecting from MongoDB")
         cls.client.close()
-        cls.client = None
+        cls.client = None  # noqa
 
     @classmethod
     async def get_server_info(cls, *, session: pymongo.client_session.ClientSession = None) -> dict:
@@ -287,12 +286,12 @@ class MongoDBHandler:
         cls,
         *,
         col_name: str,
-        db_name: str,
         indexes: list[pymongo.IndexModel],
+        db_name: str = None,
         session: pymongo.client_session.ClientSession = None,
     ):
         """Create indexes for collection by list of IndexModel"""
-        database = cls.retrieve_database(name=db_name)
+        database: pymongo.database.Database = cls.retrieve_database(name=db_name)
         return await database[col_name].create_indexes(indexes=indexes, session=session)
 
     @classmethod
@@ -327,4 +326,4 @@ class MongoDBHandler:
         return [index async for index in database[col_name].list_indexes(session=session)]
 
 
-mongo_handler = MongoDBHandler()
+db_handler = DBHandler()

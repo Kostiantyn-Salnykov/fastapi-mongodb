@@ -14,7 +14,7 @@ class BaseCreatedUpdatedModel(pydantic.BaseModel):
     updated_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
 
 
-class BaseMongoDBModel(pydantic.BaseModel):
+class BaseDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
     id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")

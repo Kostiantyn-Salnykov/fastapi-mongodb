@@ -25,30 +25,30 @@ COLORS = {
 
 class DebugFormatter(logging.Formatter):
     def formatMessage(self, record: logging.LogRecord) -> str:
-        recordcopy = copy.copy(record)
-        recordcopy.__dict__["message"] = COLORS[recordcopy.levelno](recordcopy.__dict__["message"])
-        recordcopy.__dict__["filename"] = click.style(text=str(recordcopy.__dict__["filename"]), fg="cyan")
-        recordcopy.__dict__["lineno"] = click.style(
-            text=str(recordcopy.__dict__["lineno"]), fg="blue", underline=True
+        record_copy = copy.copy(record)
+        record_copy.__dict__["message"] = COLORS[record_copy.levelno](record_copy.__dict__["message"])
+        record_copy.__dict__["filename"] = click.style(text=str(record_copy.__dict__["filename"]), fg="cyan")
+        record_copy.__dict__["lineno"] = click.style(
+            text=str(record_copy.__dict__["lineno"]), fg="blue", underline=True
         )
-        recordcopy.__dict__["created"] = click.style(text=str(recordcopy.__dict__["created"]), fg="cyan")
-        recordcopy.__dict__["asctime"] = click.style(text=str(recordcopy.__dict__["asctime"]), fg="cyan")
-        separator = " " * (10 - len(recordcopy.__dict__["levelname"]))
-        recordcopy.__dict__["levelname"] = (
-            COLORS[recordcopy.__dict__["levelno"]](recordcopy.__dict__["levelname"])
+        record_copy.__dict__["created"] = click.style(text=str(record_copy.__dict__["created"]), fg="cyan")
+        record_copy.__dict__["asctime"] = click.style(text=str(record_copy.__dict__["asctime"]), fg="cyan")
+        separator = " " * (8 - len(record_copy.__dict__["levelname"]))
+        record_copy.__dict__["levelname"] = (
+            COLORS[record_copy.__dict__["levelno"]](record_copy.__dict__["levelname"])
             + click.style(text=":", fg="cyan")
             + separator
         )
-        return super().formatMessage(record=recordcopy)
+        return super().formatMessage(record=record_copy)
 
 
 @functools.lru_cache()
 def setup_logging():
     """Setup logging formatter"""
-    main_format = "%(levelname)s: %(message)s (%(created)s | %(asctime)s)"
+    raw_format = "%(levelname)s %(message)s (%(created)s | %(asctime)s)"
     debug_format = (
-        "%(levelname)s %(message)s (%(created)s | %(asctime)s)"
-        "\n{file_format}%(pathname)s{line_format}%(lineno)s".format(
+        "{raw_format}\n{file_format}%(pathname)s{line_format}%(lineno)s".format(
+            raw_format=raw_format,
             file_format=click.style(text='╰───📃File "', fg="bright_white", bold=True),
             line_format=click.style(text='", line ', fg="bright_white", bold=True),
         )
@@ -57,8 +57,8 @@ def setup_logging():
     logging.addLevelName(level=SUCCESS, levelName="SUCCESS")
     if settings.Settings.DEBUG:
         formatter = DebugFormatter(fmt=debug_format)
-    else:
-        formatter = logging.Formatter(fmt=main_format)
+    else:  # pragma: no cover
+        formatter = logging.Formatter(fmt=raw_format)
 
     handler = logging.StreamHandler()
     handler.setFormatter(fmt=formatter)

@@ -9,17 +9,17 @@ import bases
 
 
 class TestBaseRepositoryConfig(bases.helpers.AsyncTestCaseWithPathing):
-    class BaseMongoDBModelMock(bases.models.BaseMongoDBModel):
+    class BaseDBModelMock(bases.models.BaseDBModel):
         pass
 
     def setUp(self) -> None:
         self.base_repository_config_class = bases.repositories.BaseRepositoryConfig
 
     def test__init__(self):
-        instance = self.base_repository_config_class(convert_to=self.BaseMongoDBModelMock)
+        instance = self.base_repository_config_class(convert_to=self.BaseDBModelMock)
 
         self.assertTrue(instance.convert)
-        self.assertEqual(self.BaseMongoDBModelMock, instance.convert_to)
+        self.assertEqual(self.BaseDBModelMock, instance.convert_to)
         self.assertTrue(instance.raise_not_found)
 
     def test__init__convert_to_none(self):
@@ -33,7 +33,7 @@ class TestBaseRepositoryConfig(bases.helpers.AsyncTestCaseWithPathing):
             self.base_repository_config_class(convert_to=MagicMock())
 
         self.assertEqual(
-            f"'convert_to' kwarg must be a subclass from '{bases.models.BaseMongoDBModel.__name__}'",
+            f"'convert_to' kwarg must be a subclass from '{bases.models.BaseDBModel.__name__}'",
             str(exception_context.exception),
         )
 

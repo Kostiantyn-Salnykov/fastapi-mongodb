@@ -6,22 +6,22 @@ import bases
 
 
 class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
-    class TestModel(bases.models.BaseMongoDBModel):
+    class TestModel(bases.models.BaseDBModel):
         a: typing.Optional[str]
         b: typing.Optional[str]
         c: typing.Optional[str]
 
-        class Config(bases.models.BaseMongoDBModel.Config):
+        class Config(bases.models.BaseDBModel.Config):
             sorting_fields = ["a", "b"]
             sorting_default = [("a", pymongo.DESCENDING)]
 
-    class TestModelNoSortingFields(bases.models.BaseMongoDBModel):
+    class TestModelNoSortingFields(bases.models.BaseDBModel):
         a: typing.Optional[str]
 
         class Config:
             pass
 
-    class TestModelNoSortingDefault(bases.models.BaseMongoDBModel):
+    class TestModelNoSortingDefault(bases.models.BaseDBModel):
         a: typing.Optional[str]
         b: typing.Optional[str]
         c: typing.Optional[str]

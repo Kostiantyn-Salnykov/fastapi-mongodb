@@ -5,15 +5,15 @@ import bson
 import bases
 
 
-class TestBaseMongoDBModel(bases.helpers.AsyncTestCaseWithPathing):
-    class TestCreatedUpdatedModel(bases.models.BaseMongoDBModel, bases.models.BaseCreatedUpdatedModel):
+class TestBaseDBModel(bases.helpers.AsyncTestCaseWithPathing):
+    class TestCreatedUpdatedModel(bases.models.BaseDBModel, bases.models.BaseCreatedUpdatedModel):
         test: str
 
-    class TestModel(bases.models.BaseMongoDBModel):
+    class TestModel(bases.models.BaseDBModel):
         test: str
 
     def setUp(self) -> None:
-        self.model_class = bases.models.BaseMongoDBModel
+        self.model_class = bases.models.BaseDBModel
 
     def test_from_db_default(self):
         data = {"_id": bson.ObjectId()}

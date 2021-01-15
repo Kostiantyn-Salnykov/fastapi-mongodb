@@ -96,7 +96,7 @@ class BaseSort:
             max_length=256,
             alias="orderBy",
             description="Comma separated values with 'field_name' for ascending order and '-field_name' for descending "
-            "order. Examples: 'orderBy=-email,-id' or 'orderBy=email,id'",
+            "order. Examples: 'orderBy=-email,-_id' or 'orderBy=email,_id'",
             example="email,-id",
         ),
     ):

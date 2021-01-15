@@ -10,24 +10,22 @@ PROJECT_BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 
 class SettingsClass(pydantic.BaseSettings):
+    # base
     PROJECT_NAME: str = pydantic.Field(default="Quick start FastAPI")
     BASE_DIR: pydantic.DirectoryPath = pydantic.Field(default=PROJECT_BASE_DIR)
+    SECRET_KEY: str = pydantic.Field(default="SECRET")
+    ORIGINS_LIST: list[str] = pydantic.Field(default=["*"], env="ORIGINS")
     DEBUG: bool = pydantic.Field(default=False)
     RELOAD: bool = pydantic.Field(default=False)
+    HOST: str = pydantic.Field(default="0.0.0.0")
+    PORT: int = pydantic.Field(default=9000)
+    # logging
     COLOR_LOGS: bool = pydantic.Field(default=False)
     LOGGER_NAME: str = pydantic.Field(default="MAIN_LOGGER")
     LOGGER_LEVEL: int = pydantic.Field(default=logging.INFO)
-    HOST: str = pydantic.Field(default="0.0.0.0")
-    PORT: int = pydantic.Field(default=9000)
+    # database
     MONGO_URL: str = pydantic.Field(default="mongodb://0.0.0.0:27017")
     MONGO_DB_NAME: str = pydantic.Field(default="FastAPITemplate")
-    ORIGINS_LIST: list[str] = pydantic.Field(default=["*"], env="ORIGINS")
-    SECRET_KEY: str = pydantic.Field(default="SECRET")
-    JWT_ACCESS_DELTA_MINUTES: int = pydantic.Field(default=1440)  # 30
-    JWT_REFRESH_DELTA_MINUTES: int = pydantic.Field(default=1440)
-    JWT_ISSUER: str = pydantic.Field(default="FastAPITemplate Back-end")
-    JWT_ACCESS_AUDIENCE: str = pydantic.Field(default="ACCESS")
-    JWT_REFRESH_AUDIENCE: str = pydantic.Field(default="REFRESH")
     MONGO_TEST_URL: str = pydantic.Field(default="mongodb://0.0.0.0:27017")
     MONGO_TEST_DB_NAME: str = pydantic.Field(default="test_db")
     MONGO_LOGGER_COMMAND: bool = pydantic.Field(default=False)

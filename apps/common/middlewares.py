@@ -9,13 +9,13 @@ import bases
 import settings
 
 
-class MongoSessionMiddleware(BaseHTTPMiddleware):
-    """Append 'mongo_session' for every request.state"""
+class DBSessionMiddleware(BaseHTTPMiddleware):
+    """Append 'db_session' for every request.state"""
 
     async def dispatch(self, request: fastapi.Request, call_next: RequestResponseEndpoint) -> fastapi.Response:
-        mongo_client = bases.db.MongoDBHandler.retrieve_client()
-        async with await mongo_client.start_session() as session:
-            request.state.mongo_session = session
+        db_client = bases.db.DBHandler.retrieve_client()
+        async with await db_client.start_session() as session:
+            request.state.db_session = session
             return await call_next(request)
 
 

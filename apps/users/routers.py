@@ -74,10 +74,9 @@ async def get_users(
     projector: bases.projectors.BaseProjector = fastapi.Depends(bases.projectors.BaseProjector(model_class=UserModel)),
     sort_by: bases.sorting.SortBuilder = fastapi.Depends(bases.sorting.BaseSort()),
 ):
-    result = await users_handler.users_list(
+    return await users_handler.users_list(
         request=request, query={}, sort_by=sort_by, paginator=paginator, projector=projector
     )
-    return result
 
 
 @users_router.patch(

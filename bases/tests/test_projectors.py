@@ -3,7 +3,7 @@ import pydantic
 
 
 class TestBaseProjector(bases.helpers.AsyncTestCaseWithPathing):
-    class TestModel(bases.models.BaseMongoDBModel):
+    class TestModel(bases.models.BaseDBModel):
         test: str = pydantic.Field(alias="test_alias")
 
     def setUp(self) -> None:

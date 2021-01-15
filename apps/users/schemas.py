@@ -7,9 +7,8 @@ import pydantic
 import bases
 
 
-class AddressSchema(bases.schemas.BaseSchema):
-    country: typing.Optional[str]
-    city: typing.Optional[str]
+class CodeSchema(bases.schemas.BaseSchema):
+    code: typing.Optional[str]
 
 
 # TODO (Make fields.py to remove code duplication) kost:
@@ -19,7 +18,7 @@ class BaseUserSchema(bases.schemas.BaseSchema, bases.schemas.CreatedUpdatedBaseS
     first_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Jason")
     last_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
     is_active: typing.Optional[bool]
-    address: typing.Optional[AddressSchema]
+    codes: typing.Optional[list[CodeSchema]]
 
 
 class UserCreateSchema(bases.schemas.BaseSchema):
@@ -32,8 +31,7 @@ class UserCreateSchema(bases.schemas.BaseSchema):
 class UserUpdateSchema(UserCreateSchema):
     email: typing.Optional[pydantic.EmailStr]
     password: typing.Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-    is_active: typing.Optional[bool]
-    address: typing.Optional[AddressSchema]
+    codes: typing.Optional[list[CodeSchema]]
 
 
 class UserLoginSchema(bases.schemas.BaseSchema):
