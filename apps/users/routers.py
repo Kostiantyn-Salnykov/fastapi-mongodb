@@ -17,12 +17,12 @@ __all__ = ["users_router", "login_router"]
 
 bearer_auth = HTTPBearer(auto_error=False)
 
-users_router = fastapi.APIRouter()
-login_router = fastapi.APIRouter()
+users_router = fastapi.APIRouter(prefix="/users", tags=["users"])
+login_router = fastapi.APIRouter(tags=["authentication"])
 
 
 @users_router.post(
-    path="/users/",
+    path="/",
     name="Create user",
     response_model=bases.schemas.InsertOneResultSchema,
     status_code=fastapi.status.HTTP_201_CREATED,
@@ -34,7 +34,19 @@ async def create_user(
 
 
 @users_router.get(
-    path="/users/{_id}/",
+    path="/whoami/",
+    name="Get user from authorization",
+    response_model=BaseUserSchema,
+    dependencies=[fastapi.Depends(bearer_auth)],
+)
+async def whoami(
+        request: fastapi.Request,
+):
+    return request.user.dict()
+
+
+@users_router.get(
+    path="/{_id}/",
     name="Get user by '_id'",
     description="Retrieve user by '_id'",
     response_model=BaseUserSchema,
@@ -50,19 +62,7 @@ async def get_user(
 
 
 @users_router.get(
-    path="/whoami/",
-    name="Get user from authorization",
-    response_model=BaseUserSchema,
-    dependencies=[fastapi.Depends(bearer_auth)],
-)
-async def whoami(
-    request: fastapi.Request,
-):
-    return request.user.dict()
-
-
-@users_router.get(
-    path="/users/",
+    path="/",
     response_model=list[BaseUserSchema],
     response_model_exclude_unset=True,
     dependencies=[fastapi.Depends(bearer_auth)],
@@ -80,7 +80,7 @@ async def get_users(
 
 
 @users_router.patch(
-    path="/users/{_id}/",
+    path="/{_id}/",
     response_model=BaseUserSchema,
     dependencies=[fastapi.Depends(bearer_auth)],
 )
@@ -94,7 +94,7 @@ async def update_user(
 
 
 @users_router.delete(
-    path="/users/{_id}/",
+    path="/{_id}/",
     response_model=bases.schemas.DeleteResultSchema,
     dependencies=[fastapi.Depends(bearer_auth)],
 )

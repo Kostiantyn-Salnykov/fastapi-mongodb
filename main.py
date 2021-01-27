@@ -51,6 +51,5 @@ App.add_middleware(
     allow_headers=["*"],
 )
 
-App.include_router(router=users_router, tags=["users"])
-
-App.include_router(router=login_router, tags=["authentication"])
+App.include_router(router=users_router)
+App.include_router(router=login_router)

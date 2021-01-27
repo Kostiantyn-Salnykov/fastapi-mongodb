@@ -1,7 +1,7 @@
 import datetime
 import typing
 
-import authlib.jose
+import jwt
 from apps.common.enums import CodeAudiences
 import bases
 from apps.common.handlers import PasswordsHandler, TokensHandler
@@ -41,9 +41,7 @@ class TestPasswordsHandler(bases.helpers.AsyncTestCaseWithPathing):
 class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
     class TestModel(bases.schemas.BaseSchema):
         # JWT options
-        sub: str
         iss: str
-        jti: str
         iat: datetime.datetime
         exp: datetime.datetime
         nbf: datetime.datetime
@@ -57,7 +55,6 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
 
     def setUp(self) -> None:
         self.tokens_handler = TokensHandler()
-        self.default_header = {"alg": "HS512", "typ": "JWT"}
 
     def get_test_data(self):
         return {
@@ -74,16 +71,15 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
         }
 
     def get_custom_claims(self):
-        return {"sub": self.faker.pystr(), "iss": self.faker.pystr(), "jti": self.faker.pystr()}
+        return {"iss": self.faker.pystr()}
 
     def test_create_read_code_default(self):
         code = self.tokens_handler.create_code()
 
-        parsed: authlib.jose.JWTClaims = self.tokens_handler.read_code(code=code)
+        parsed: dict = self.tokens_handler.read_code(code=code)
 
         self.assertIsInstance(code, str)
-        self.assertIsInstance(parsed, authlib.jose.JWTClaims)
-        self.assertEqual(self.default_header, parsed.header)
+        self.assertIsInstance(parsed, dict)
 
     def test_create_read_code_custom(self):
         test_data = self.get_test_data()
@@ -97,7 +93,6 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
             exp=now,
             nbf=now,
             aud=CodeAudiences.EMAIL_RESET,
-            header={"alg": "HS256"},
             **custom_claims
         )
 
@@ -119,7 +114,7 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
 
         with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
-        self.assertEqual("The token is expired", str(exception_context.exception))
+        self.assertEqual("Expired JWT token.", str(exception_context.exception))
 
     def test_read_code_exception_nbf(self):
         now = bases.helpers.utc_now()
@@ -127,7 +122,7 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
 
         with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
-        self.assertEqual("The token is not valid yet", str(exception_context.exception))
+        self.assertEqual("The token is not valid yet.", str(exception_context.exception))
 
     def test_read_code_leeway(self):
         now = bases.helpers.utc_now()
@@ -137,6 +132,27 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
         with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
 
-        self.assertEqual("The token is expired", str(exception_context.exception))
-        self.assertIsInstance(parsed, authlib.jose.JWTClaims)
-        self.assertEqual(self.default_header, parsed.header)
+        self.assertEqual("Expired JWT token.", str(exception_context.exception))
+        self.assertIsInstance(parsed, dict)
+
+    def test_read_code_exception_aud(self):
+        code = self.tokens_handler.create_code()
+
+        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+            self.tokens_handler.read_code(code=code, aud=CodeAudiences.REFRESH_TOKEN)
+
+        self.assertEqual("Invalid JWT audience.", str(exception_context.exception))
+
+    def test_read_code_exception_iss(self):
+        code = self.tokens_handler.create_code(iss=self.faker.pystr())
+
+        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+            self.tokens_handler.read_code(code=code)
+
+        self.assertEqual("Invalid JWT issuer.", str(exception_context.exception))
+
+    def test_read_code_exception_invalid_jwt(self):
+        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+            self.tokens_handler.read_code(code=self.faker.pystr())
+
+        self.assertEqual("Invalid JWT.", str(exception_context.exception))

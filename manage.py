@@ -47,9 +47,9 @@ async def creteapp():
         AppFile(
             file_name="config.py",
             path=[app_name],
-            content=f"""import pydantic
-import functools
+            content=f"""import functools
 
+import pydantic
 
 __all__ = ["{app_name}_settings"]
 

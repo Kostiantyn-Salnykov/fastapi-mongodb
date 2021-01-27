@@ -22,7 +22,8 @@ pymongo = {extras = ["tls", "srv"],version = "*"}
 gunicorn = "*"
 coverage = "*"
 faker = "*"
-authlib = "*"
+httpx = "*"
+pyjwt = "*"
 
 [requires]
 python_version = "3.9"

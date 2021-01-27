@@ -4,7 +4,7 @@ import hashlib
 import secrets
 import typing
 
-import authlib.jose
+import jwt
 
 import bases
 import settings
@@ -62,11 +62,7 @@ class TokensHandler:
         iat: datetime.datetime = None,  # Issued at datetime
         exp: datetime.datetime = None,  # Expired at datetime
         nbf: datetime.datetime = None,  # Not before datetime
-        sub: str = "",  # Subject
         iss: str = "",  # Issuer
-        jti: str = "",  # JWT ID
-        header: dict[str, typing.Union[str, int, bool]] = None,  # JWT header, eg: {"alg": "HS256"}
-        check: bool = True,  # checks for sensitive data
     ) -> str:
         if data is None:
             data = {}
@@ -77,13 +73,9 @@ class TokensHandler:
             exp = now + datetime.timedelta(minutes=30)
         if nbf is None:
             nbf = now
-        if header is None:
-            header = {"alg": "HS512"}
         payload = data.copy()
-        payload |= {"iat": iat, "aud": aud, "exp": exp, "nbf": nbf, "iss": iss, "sub": sub, "jti": jti}
-        return authlib.jose.jwt.encode(
-            header=header, payload=payload, key=settings.Settings.SECRET_KEY, check=check
-        ).decode("utf-8")
+        payload |= {"iat": iat, "aud": aud, "exp": exp, "nbf": nbf, "iss": iss}
+        return jwt.encode(payload=payload, key=settings.Settings.SECRET_KEY, algorithm="HS512")
 
     @classmethod
     def read_code(
@@ -91,29 +83,33 @@ class TokensHandler:
         *,
         code: str,
         aud: CodeAudiences = CodeAudiences.ACCESS_TOKEN,  # Audience
-        sub: str = "",  # Subject
         iss: str = "",  # Issuer
-        jti: str = "",  # JWT ID,
-        now: datetime.datetime = None,
         leeway: int = 0,  # provide extra time in seconds to validate (iat, exp, nbf)
         convert_to: typing.Type[bases.schemas.BaseSchema] = None,
     ):
-        now = int(bases.helpers.as_utc(date_time=now).timestamp() if now else bases.helpers.utc_now().timestamp())
         try:
-            payload = authlib.jose.jwt.decode(
-                s=code.encode("utf-8"),
+            payload = jwt.decode(
+                jwt=code,
                 key=settings.Settings.SECRET_KEY,
-                claims_options={
-                    "sub": {"value": sub},
-                    "aud": {"value": aud},
-                    "iss": {"value": iss},
-                    "jti": {"value": jti},
-                },
+                algorithms=["HS512"],
+                leeway=leeway,
+                audience=aud,
+                issuer=iss,
             )
-            payload.validate(now=now, leeway=leeway)
             if convert_to is not None:
                 payload = convert_to(**payload)  # noqa
-        except authlib.jose.errors.JoseError as error:
-            raise bases.exceptions.HandlerException(error.description)
+        except jwt.exceptions.InvalidIssuerError as error:
+            raise bases.exceptions.HandlerException("Invalid JWT issuer.") from error
+        except jwt.exceptions.InvalidAudienceError as error:
+            raise bases.exceptions.HandlerException("Invalid JWT audience.") from error
+        except jwt.exceptions.InvalidIssuedAtError as error:
+            raise bases.exceptions.HandlerException("Invalid JWT issued at.") from error
+        except jwt.exceptions.ExpiredSignatureError as error:
+            raise bases.exceptions.HandlerException("Expired JWT token.") from error
+        except jwt.exceptions.ImmatureSignatureError as error:
+            raise bases.exceptions.HandlerException("The token is not valid yet.") from error
+        # base error exception from pyjwt
+        except jwt.exceptions.PyJWTError as error:
+            raise bases.exceptions.HandlerException("Invalid JWT.") from error
         else:
             return payload
