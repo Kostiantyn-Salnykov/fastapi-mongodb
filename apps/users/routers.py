@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer
 import bases
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
+from apps.users.permissions import IsAuthenticated
 from apps.users.schemas import (
     UserCreateSchema,
     UserLoginSchema,
@@ -37,10 +38,10 @@ async def create_user(
     path="/whoami/",
     name="Get user from authorization",
     response_model=BaseUserSchema,
-    dependencies=[fastapi.Depends(bearer_auth)],
+    dependencies=[fastapi.Depends(bearer_auth), fastapi.Depends(IsAuthenticated())],
 )
 async def whoami(
-        request: fastapi.Request,
+    request: fastapi.Request,
 ):
     return request.user.dict()
 

@@ -39,6 +39,8 @@ class ExceptionsMiddleware(BaseHTTPMiddleware):
             )
         except bases.exceptions.RepositoryException as error:
             return fastapi.responses.ORJSONResponse(status_code=error.status_code, content={"detail": error.detail})
+        except bases.exceptions.PermissionException as error:
+            return fastapi.responses.ORJSONResponse(status_code=error.status_code, content={"detail": error.detail})
         except Exception as error:
             bases.logging.logger.error(msg=f"HandlerExceptionsMiddleware | Exception | {error}")
             if settings.Settings.DEBUG:

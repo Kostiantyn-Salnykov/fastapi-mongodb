@@ -6,6 +6,7 @@ import bases.helpers
 import bases.logging
 import bases.models
 import bases.pagination
+import bases.permissions
 import bases.projectors
 import bases.repositories
 import bases.schemas
