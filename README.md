@@ -35,26 +35,30 @@ coverate report
 - ➕ BaseRepositoryConfig (customization for Repository logic)
 - ➕ TokensHandler (encode / decode and validate JWT tokens)
 - ➕ PasswordsHandler (password hashing and password checking)
-- ➖ Login with Google, Facebook, Twitter
-- ➕➖ manage.py commands (setup apps / create apps etc)
 - ➕ settings.py (get base config from .env)
 - ➕ BaseLogger (debug logger and simple logger)
-- ➕➖ DB setup (db management, db level commands)
 - ➕ DB profiling and monitoring
 - ➕ Application setup (config.py, indexes, collection setup)
 - ➕ Tests and test environment (test DB configuration)
-- ➖ Load testing with Locust
-- ➕➖ .Dockerfile and docker-compose.yaml
-- ➕➖ Sorting (?orderBy)
+- ➕ Model Factories (factory_boy)
 - ➕ Pagination (?limit, ?offset)
+- ➕➖ Sorting (?orderBy)
 - ➕➖ Projectors (?showFields, ?hideFields)
+- ➕➖ Trace memory allocations (tracemalloc)
+- ➕➖ BaseProfiler (decorator and context manager / cProfile)
+- ➕➖ manage.py commands (setup apps / create apps etc)
+- ➕➖ .Dockerfile and docker-compose.yaml
+- ➕➖ DB setup (db management, db level commands)
+- ➖ DB User management commands (append to manage.py)
+- ➖ DB ReplicaSet setup + docker-compose.yaml
+- ➖ DB migrations handler (migrations running and tracking)
+- ➖ DB dump/restore
 - ➖ Filters ("Depends" classes maybe DB applicable)
 - ➖ Change email flow
 - ➖ Change password flow
 - ➖ Reset password flow
-- ➖ DB ReplicaSet setup + docker-compose.yaml
-- ➖ DB User management commands (Makefile)
-- ➕➖ Trace memory allocations (tracemalloc)
-- ➕➖ BaseProfiler (decorator and context manager / cProfile)
-- ➕ Model Factories (factory_boy)
-- ➖ .csv / .xlsx Handlers 
+- ➖ Load testing with Locust
+- ➖ Login with Google, Facebook, Twitter
+- ➖ .csv / .xlsx Handlers
+- ➖ Background tasks (Redis + celery/celery-beat)
+
