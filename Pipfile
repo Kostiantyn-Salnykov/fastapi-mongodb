@@ -9,6 +9,9 @@ black = "*"
 flake8 = "*"
 factory-boy = "*"
 v = {editable = true,version = "*"}
+xenon = "*"
+pytest = "*"
+pytest-cov = "*"
 
 [packages]
 fastapi = "*"
@@ -24,6 +27,8 @@ coverage = "*"
 faker = "*"
 httpx = "*"
 pyjwt = "*"
+mkdocs = "*"
+mkdocs-material = "*"
 
 [requires]
 python_version = "3.9"

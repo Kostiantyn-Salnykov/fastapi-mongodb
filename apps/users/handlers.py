@@ -5,24 +5,25 @@ import pymongo
 import pymongo.errors
 import pymongo.results
 
-import bases
 from apps.common.enums import CodeAudiences
 from apps.common.handlers import PasswordsHandler, TokensHandler
 from apps.users.models import UserModel
 from apps.users.repositories import UserRepository
-from apps.users.schemas import (
-    UserCreateSchema,
-    UserLoginSchema,
-    JWTRefreshSchema,
-    JWTPayloadSchema,
-    UserUpdateSchema,
-)
+from apps.users.schemas import JWTPayloadSchema, JWTRefreshSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema
+from bases.exceptions import HandlerException, RepositoryException
+from bases.handlers import BaseHandler, mongo_duplicate_key_error_handler
+from bases.pagination import Paginator
+from bases.projectors import BaseProjector
+from bases.repositories import BaseRepositoryConfig
+from bases.sorting import SortBuilder
+from bases.types import OID
 
 __all__ = ["UsersHandler"]
 
 
-class UsersHandler:
-    def __init__(self):
+class UsersHandler(BaseHandler):
+    def __init__(self, request: fastapi.Request):
+        super().__init__(request=request)
         self.user_repository = UserRepository()
 
     async def create_user(self, request: fastapi.Request, user: UserCreateSchema) -> dict:
@@ -36,7 +37,7 @@ class UsersHandler:
                 session=request.state.db_session,
             )
         except pymongo.errors.DuplicateKeyError as error:
-            bases.handlers.mongo_duplicate_key_error_handler(model_name="User", fields=["email"], error=error)
+            mongo_duplicate_key_error_handler(model_name="User", fields=["email"], error=error)
         else:
             return {"acknowledged": result.acknowledged, "inserted_id": result.inserted_id}
 
@@ -47,9 +48,9 @@ class UsersHandler:
         self,
         request: fastapi.Request,
         query: dict,
-        sort_by: bases.sorting.SortBuilder,
-        paginator: bases.pagination.Paginator,
-        projector: bases.projectors.BaseProjector,
+        sort_by: SortBuilder,
+        paginator: Paginator,
+        projector: BaseProjector,
     ):
         return await self.user_repository.find(
             query=query,
@@ -58,14 +59,14 @@ class UsersHandler:
             limit=paginator.limit,
             session=request.state.db_session,
             projection=projector.to_db(),
-            repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
+            repository_config=BaseRepositoryConfig(convert=False),
         )
 
     async def delete_user(self, request: fastapi.Request, query: dict):
         result = await self.user_repository.delete_one(query=query, session=request.state.db_session)
         return {"acknowledged": result.acknowledged, "deleted_count": result.deleted_count}
 
-    async def update_user(self, request: fastapi.Request, _id: bases.types.OID, update: UserUpdateSchema):
+    async def update_user(self, request: fastapi.Request, _id: OID, update: UserUpdateSchema):
         update_dict = update.dict(exclude_unset=True)
         if update_dict:
             password = update_dict.pop("password", None)
@@ -77,13 +78,13 @@ class UsersHandler:
                 update={"$set": update_dict},
                 session=request.state.db_session,
                 return_document=pymongo.ReturnDocument.AFTER,
-                repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
+                repository_config=BaseRepositoryConfig(convert=False),
             )
         else:
             user = await self.user_repository.find_one(
                 query={"_id": _id},
                 session=request.state.db_session,
-                repository_config=bases.repositories.BaseRepositoryConfig(convert=False),
+                repository_config=BaseRepositoryConfig(convert=False),
             )
         user = UserModel.from_db(data=user)
         return user
@@ -93,7 +94,7 @@ class UsersHandler:
             user: UserModel = await self.retrieve_user(
                 request=request, query={"email": credentials.email, "is_active": True}
             )
-        except bases.exceptions.RepositoryException:
+        except RepositoryException:
             pass
         else:
             if PasswordsHandler.check_password(password=credentials.password, password_hash=user.password_hash):
@@ -101,7 +102,7 @@ class UsersHandler:
                     "access": TokensHandler.create_code(data={"id": str(user.id)}),
                     "refresh": TokensHandler.create_code(data={"id": str(user.id)}, aud=CodeAudiences.REFRESH_TOKEN),
                 }
-        raise bases.exceptions.HandlerException("Invalid credentials.")
+        raise HandlerException("Invalid credentials.")
 
     async def refresh(self, data: JWTRefreshSchema) -> dict:
         payload: JWTPayloadSchema = TokensHandler.read_code(

@@ -1,19 +1,22 @@
 import typing
-from unittest.mock import MagicMock, call as mock_call
+from unittest.mock import MagicMock
+from unittest.mock import call as mock_call
 
 import motor.motor_asyncio
 import pymongo
 import pymongo.errors
 
-import bases
 import settings
+from bases.db import CommandLogger, ConnectionPoolLogger, DBHandler, HeartbeatLogger, ServerLogger, TopologyLogger
+from bases.helpers import AsyncTestCase
+from bases.logging import logger
 
 
-class TestCommandLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestCommandLogger(AsyncTestCase):
     def setUp(self) -> None:
-        self.logger = bases.db.CommandLogger()
+        self.logger = CommandLogger()
         self.event = MagicMock()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_started(self):
         self.logger.started(event=self.event)
@@ -40,11 +43,11 @@ class TestCommandLogger(bases.helpers.AsyncTestCaseWithPathing):
         )
 
 
-class TestConnectionPoolLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestConnectionPoolLogger(AsyncTestCase):
     def setUp(self) -> None:
-        self.logger = bases.db.ConnectionPoolLogger()
+        self.logger = ConnectionPoolLogger()
         self.event = MagicMock()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_pool_created(self):
         self.logger.pool_created(event=self.event)
@@ -110,11 +113,11 @@ class TestConnectionPoolLogger(bases.helpers.AsyncTestCaseWithPathing):
         )
 
 
-class TestServerLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestServerLogger(AsyncTestCase):
     def setUp(self) -> None:
-        self.logger = bases.db.ServerLogger()
+        self.logger = ServerLogger()
         self.event = MagicMock()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_opened(self):
         self.logger.opened(event=self.event)
@@ -148,11 +151,11 @@ class TestServerLogger(bases.helpers.AsyncTestCaseWithPathing):
         )
 
 
-class TestHeartbeatLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestHeartbeatLogger(AsyncTestCase):
     def setUp(self) -> None:
-        self.logger = bases.db.HeartbeatLogger()
+        self.logger = HeartbeatLogger()
         self.event = MagicMock()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_started(self):
         self.logger.started(event=self.event)
@@ -174,11 +177,11 @@ class TestHeartbeatLogger(bases.helpers.AsyncTestCaseWithPathing):
         )
 
 
-class TestTopologyLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestTopologyLogger(AsyncTestCase):
     def setUp(self) -> None:
-        self.logger = bases.db.TopologyLogger()
+        self.logger = TopologyLogger()
         self.event = MagicMock()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_opened(self):
         self.logger.opened(event=self.event)
@@ -223,10 +226,10 @@ class TestTopologyLogger(bases.helpers.AsyncTestCaseWithPathing):
         self.debug_mock.assert_called_once_with(f"Topology with id {self.event.topology_id} closed")
 
 
-class TestMongoDBHandlerBase(bases.helpers.AsyncTestCaseWithPathing):
+class TestMongoDBHandlerBase(AsyncTestCase):
     def setUp(self) -> None:
-        self.db_handler = bases.db.DBHandler()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.db_handler = DBHandler()
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_retrieve_client(self):
         self.patch_obj(target=settings.Settings, attribute="MONGO_URL", new=settings.Settings.MONGO_TEST_URL)
@@ -247,12 +250,12 @@ class TestMongoDBHandlerBase(bases.helpers.AsyncTestCaseWithPathing):
         self.assertEqual(result.name, settings.Settings.MONGO_TEST_DB_NAME)
 
 
-class TestDBHandler(bases.helpers.MongoDBTestCase):
+class TestDBHandler(AsyncTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.test_db_name = settings.Settings.MONGO_TEST_DB_NAME
-        self.db_handler = bases.db.DBHandler()
-        self.debug_mock = self.patch_obj(target=bases.logging.logger, attribute="debug")
+        self.db_handler = DBHandler()
+        self.debug_mock = self.patch_obj(target=logger, attribute="debug")
 
     def test_retrieve_client(self):
         result = self.db_handler.retrieve_client()
@@ -260,8 +263,6 @@ class TestDBHandler(bases.helpers.MongoDBTestCase):
         self.assertEqual(self._get_client_for_test(), result)
 
     def test_create_client(self):
-        self.assertIsNone(self.db_handler.client)
-
         self.db_handler.create_client()
 
         self.assertIsInstance(self.db_handler.client, motor.motor_asyncio.AsyncIOMotorClient)
@@ -440,7 +441,8 @@ class TestDBHandler(bases.helpers.MongoDBTestCase):
             )
         await self.db_handler.delete_index(col_name=col_name, db_name=self.test_db_name, name=index_name)
 
-        self.assertDictEqual(expected_exception_details, exception_context.exception.details)
+        for key, value in expected_exception_details.items():
+            self.assertEqual(value, exception_context.exception.details[key])
 
     async def test_list_indexes_names(self):
         index_name, col_name = self.faker.pystr(), self.faker.pystr()

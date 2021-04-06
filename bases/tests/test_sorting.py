@@ -2,26 +2,28 @@ import typing
 
 import pymongo
 
-import bases
+from bases.helpers import AsyncTestCase
+from bases.models import BaseDBModel
+from bases.sorting import BaseSort, SortBuilder
 
 
-class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
-    class TestModel(bases.models.BaseDBModel):
+class TestSortBuilder(AsyncTestCase):
+    class TestModel(BaseDBModel):
         a: typing.Optional[str]
         b: typing.Optional[str]
         c: typing.Optional[str]
 
-        class Config(bases.models.BaseDBModel.Config):
+        class Config(BaseDBModel.Config):
             sorting_fields = ["a", "b"]
             sorting_default = [("a", pymongo.DESCENDING)]
 
-    class TestModelNoSortingFields(bases.models.BaseDBModel):
+    class TestModelNoSortingFields(BaseDBModel):
         a: typing.Optional[str]
 
         class Config:
             pass
 
-    class TestModelNoSortingDefault(bases.models.BaseDBModel):
+    class TestModelNoSortingDefault(BaseDBModel):
         a: typing.Optional[str]
         b: typing.Optional[str]
         c: typing.Optional[str]
@@ -30,18 +32,30 @@ class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
             sorting_fields = ["a", "b"]
 
     def test__init__(self):
-        sorting_fields = [("a", pymongo.ASCENDING), ("b", pymongo.DESCENDING), ("c", pymongo.ASCENDING)]
+        sorting_fields = [
+            ("a", pymongo.ASCENDING),
+            ("b", pymongo.DESCENDING),
+            ("c", pymongo.ASCENDING),
+        ]
 
-        builder = bases.sorting.SortBuilder(sorting_fields=sorting_fields)
+        builder = SortBuilder(sorting_fields=sorting_fields)
 
         self.assertEqual([("_id", pymongo.DESCENDING)], builder.sorting_default)
         self.assertEqual(sorting_fields, builder.sorting_fields)
 
     def test_to_db(self):
-        sorting_fields = [("a", pymongo.ASCENDING), ("b", pymongo.DESCENDING), ("c", pymongo.ASCENDING)]
-        expected_result = [("a", pymongo.ASCENDING), ("b", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)]
+        sorting_fields = [
+            ("a", pymongo.ASCENDING),
+            ("b", pymongo.DESCENDING),
+            ("c", pymongo.ASCENDING),
+        ]
+        expected_result = [
+            ("a", pymongo.ASCENDING),
+            ("b", pymongo.DESCENDING),
+            ("_id", pymongo.DESCENDING),
+        ]
 
-        result = bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModel)
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModel)
 
         self.assertEqual(expected_result, result)
 
@@ -49,17 +63,25 @@ class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
         sorting_fields = []
         expected_result = self.TestModel.Config.sorting_default
 
-        result = bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(
             model=self.TestModel, append_sorting_default=False
         )
 
         self.assertEqual(expected_result, result)
 
     def test_to_db_pipeline(self):
-        sorting_fields = [("a", pymongo.ASCENDING), ("b", pymongo.DESCENDING), ("c", pymongo.ASCENDING)]
-        expected_result = {"a": pymongo.ASCENDING, "b": pymongo.DESCENDING, "_id": pymongo.DESCENDING}
+        sorting_fields = [
+            ("a", pymongo.ASCENDING),
+            ("b", pymongo.DESCENDING),
+            ("c", pymongo.ASCENDING),
+        ]
+        expected_result = {
+            "a": pymongo.ASCENDING,
+            "b": pymongo.DESCENDING,
+            "_id": pymongo.DESCENDING,
+        }
 
-        result = bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(
             model=self.TestModel, to_pipeline_stage=True
         )
 
@@ -69,7 +91,7 @@ class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
         sorting_fields = []
         expected_result = {"a": pymongo.DESCENDING}
 
-        result = bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(
             model=self.TestModel, to_pipeline_stage=True, append_sorting_default=False
         )
 
@@ -79,18 +101,18 @@ class TestSortBuilder(bases.helpers.AsyncTestCaseWithPathing):
         sorting_fields = []
 
         with self.assertRaises(NotImplementedError):
-            bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModelNoSortingFields)
+            SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModelNoSortingFields)
 
     def test_to_db_model_no_sorting_default(self):
         sorting_fields = []
         expected_result = [("_id", pymongo.DESCENDING)]
 
-        result = bases.sorting.SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModelNoSortingDefault)
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModelNoSortingDefault)
 
         self.assertEqual(expected_result, result)
 
 
-class TestBaseSort(bases.helpers.AsyncTestCaseWithPathing):
+class TestBaseSort(AsyncTestCase):
     def test__call__(self):
         expected_sorting_fields = [
             ("_id", pymongo.DESCENDING),
@@ -99,12 +121,12 @@ class TestBaseSort(bases.helpers.AsyncTestCaseWithPathing):
             ("c", pymongo.DESCENDING),
         ]
 
-        sort_builder = bases.sorting.BaseSort()(order_by=" -_id  , a  , -b , -c   ")
+        sort_builder = BaseSort()(order_by=" -_id  , a  , -b , -c   ")
 
-        self.assertIsInstance(sort_builder, bases.sorting.SortBuilder)
+        self.assertIsInstance(sort_builder, SortBuilder)
         self.assertEqual(expected_sorting_fields, sort_builder.sorting_fields)
 
     def test__call__empty(self):
-        sort_builder = bases.sorting.BaseSort()(order_by="")
+        sort_builder = BaseSort()(order_by="")
 
         self.assertEqual([], sort_builder.sorting_fields)

@@ -1,11 +1,12 @@
 import unittest.mock
 
-import bases
+from bases.helpers import AsyncTestCase
+from bases.types import OID
 
 
-class TestOID(bases.helpers.AsyncTestCaseWithPathing):
+class TestOID(AsyncTestCase):
     def setUp(self) -> None:
-        self.type_class = bases.types.OID
+        self.type_class = OID
 
     def test__modify_schema__(self):
         field_schema_mock = unittest.mock.MagicMock()

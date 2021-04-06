@@ -21,7 +21,9 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - mongodb_data:/data/db/
+      - ./mongodb/db:/var/mongodb/db/
+      - ./mongod.yaml:/etc/mongod.yaml
+    entrypoint: ["mongod", "--config", "/etc/mongod.yaml"]
   redis:
     env_file:
       - .env
@@ -36,6 +38,3 @@ services:
     restart: always
     depends_on:
       - redis
-
-volumes:
-  mongodb_data:

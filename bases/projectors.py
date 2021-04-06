@@ -2,11 +2,12 @@ import typing
 
 import fastapi
 
-import bases
+from bases.exceptions import HandlerException
+from bases.models import BaseDBModel
 
 
 class BaseProjector:
-    def __init__(self, model_class: typing.Type[bases.models.BaseDBModel]):
+    def __init__(self, model_class: typing.Type[BaseDBModel]):
         self.model = model_class
         self._id_field = "_id"
         self.fields_show = None
@@ -26,7 +27,7 @@ class BaseProjector:
         ),
     ):
         if fields_show is not None and fields_hide is not None:
-            raise bases.exceptions.HandlerException("You can't add 'fieldsShow' and 'fieldsHide' together to Projector")
+            raise HandlerException("You can't add 'fieldsShow' and 'fieldsHide' together to Projector")
         self.fields_show = fields_show
         self.fields_hide = fields_hide
         return self

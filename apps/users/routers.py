@@ -1,18 +1,22 @@
 import fastapi
 from fastapi.security import HTTPBearer
 
-import bases
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.permissions import IsAuthenticated
 from apps.users.schemas import (
+    BaseUserSchema,
+    JWTRefreshSchema,
+    JWTSchema,
     UserCreateSchema,
     UserLoginSchema,
-    JWTSchema,
-    JWTRefreshSchema,
-    BaseUserSchema,
     UserUpdateSchema,
 )
+from bases.pagination import LimitOffsetPagination, Paginator
+from bases.projectors import BaseProjector
+from bases.schemas import DeleteResultSchema, InsertOneResultSchema
+from bases.sorting import BaseSort, SortBuilder
+from bases.types import OID
 
 __all__ = ["users_router", "login_router"]
 
@@ -25,11 +29,13 @@ login_router = fastapi.APIRouter(tags=["authentication"])
 @users_router.post(
     path="/",
     name="Create user",
-    response_model=bases.schemas.InsertOneResultSchema,
+    response_model=InsertOneResultSchema,
     status_code=fastapi.status.HTTP_201_CREATED,
 )
 async def create_user(
-    request: fastapi.Request, user: UserCreateSchema, users_handler: UsersHandler = fastapi.Depends(UsersHandler)
+    request: fastapi.Request,
+    user: UserCreateSchema,
+    users_handler: UsersHandler = fastapi.Depends(UsersHandler),
 ):
     return await users_handler.create_user(request=request, user=user)
 
@@ -51,11 +57,11 @@ async def whoami(
     name="Get user by '_id'",
     description="Retrieve user by '_id'",
     response_model=BaseUserSchema,
-    dependencies=[fastapi.Depends(bearer_auth)],
+    dependencies=[fastapi.Depends(bearer_auth), fastapi.Depends(IsAuthenticated())],
 )
 async def get_user(
     request: fastapi.Request,
-    _id: bases.types.OID = fastapi.Path(...),
+    _id: OID = fastapi.Path(...),
     users_handler: UsersHandler = fastapi.Depends(UsersHandler),
 ):
     result = await users_handler.retrieve_user(request=request, query={"_id": _id})
@@ -66,28 +72,32 @@ async def get_user(
     path="/",
     response_model=list[BaseUserSchema],
     response_model_exclude_unset=True,
-    dependencies=[fastapi.Depends(bearer_auth)],
+    dependencies=[fastapi.Depends(bearer_auth), fastapi.Depends(IsAuthenticated())],
 )
 async def get_users(
     request: fastapi.Request,
     users_handler: UsersHandler = fastapi.Depends(UsersHandler),
-    paginator: bases.pagination.Paginator = fastapi.Depends(bases.pagination.LimitOffsetPagination()),
-    projector: bases.projectors.BaseProjector = fastapi.Depends(bases.projectors.BaseProjector(model_class=UserModel)),
-    sort_by: bases.sorting.SortBuilder = fastapi.Depends(bases.sorting.BaseSort()),
+    paginator: Paginator = fastapi.Depends(LimitOffsetPagination()),
+    projector: BaseProjector = fastapi.Depends(BaseProjector(model_class=UserModel)),
+    sort_by: SortBuilder = fastapi.Depends(BaseSort()),
 ):
     return await users_handler.users_list(
-        request=request, query={}, sort_by=sort_by, paginator=paginator, projector=projector
+        request=request,
+        query={},
+        sort_by=sort_by,
+        paginator=paginator,
+        projector=projector,
     )
 
 
 @users_router.patch(
     path="/{_id}/",
     response_model=BaseUserSchema,
-    dependencies=[fastapi.Depends(bearer_auth)],
+    dependencies=[fastapi.Depends(bearer_auth), fastapi.Depends(IsAuthenticated())],
 )
 async def update_user(
     request: fastapi.Request,
-    _id: bases.types.OID = fastapi.Path(...),
+    _id: OID = fastapi.Path(...),
     update: UserUpdateSchema = fastapi.Body(...),
     users_handler: UsersHandler = fastapi.Depends(UsersHandler),
 ):
@@ -96,12 +106,12 @@ async def update_user(
 
 @users_router.delete(
     path="/{_id}/",
-    response_model=bases.schemas.DeleteResultSchema,
-    dependencies=[fastapi.Depends(bearer_auth)],
+    response_model=DeleteResultSchema,
+    dependencies=[fastapi.Depends(bearer_auth), fastapi.Depends(IsAuthenticated())],
 )
 async def delete_user(
     request: fastapi.Request,
-    _id: bases.types.OID = fastapi.Path(...),
+    _id: OID = fastapi.Path(...),
     users_handler: UsersHandler = fastapi.Depends(UsersHandler),
 ):
     return await users_handler.delete_user(request=request, query={"_id": _id})

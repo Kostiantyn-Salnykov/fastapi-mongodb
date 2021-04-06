@@ -1,13 +1,26 @@
-import bases
+from bases.helpers import AsyncTestCase
+from bases.logging import TRACE, logger
 
 
-class TestLogger(bases.helpers.AsyncTestCaseWithPathing):
+class TestLogger(AsyncTestCase):
     def test_log(self):
-        logger = bases.logging.logger
-        logger.trace(msg="TESTING LOGGER")
-        logger.debug(msg="TESTING LOGGER")
-        logger.success(msg="TESTING LOGGER")
-        logger.info(msg="TESTING LOGGER")
-        logger.warning(msg="TESTING LOGGER")
-        logger.error(msg="TESTING LOGGER")
-        logger.critical(msg="TESTING LOGGER")
+        with self.assertLogs(logger=logger, level=TRACE) as logger_context:
+            logger.trace(msg="TESTING TRACE")
+            logger.debug(msg="TESTING DEBUG")
+            logger.success(msg="TESTING SUCCESS")
+            logger.info(msg="TESTING INFO")
+            logger.warning(msg="TESTING WARNING")
+            logger.error(msg="TESTING ERROR")
+            logger.critical(msg="TESTING CRITICAL")
+        self.assertEqual(
+            [
+                f"TRACE:{logger.name}:TESTING TRACE",
+                f"DEBUG:{logger.name}:TESTING DEBUG",
+                f"SUCCESS:{logger.name}:TESTING SUCCESS",
+                f"INFO:{logger.name}:TESTING INFO",
+                f"WARNING:{logger.name}:TESTING WARNING",
+                f"ERROR:{logger.name}:TESTING ERROR",
+                f"CRITICAL:{logger.name}:TESTING CRITICAL",
+            ],
+            logger_context.output,
+        )

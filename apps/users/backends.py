@@ -1,12 +1,12 @@
 """Backends for JWT"""
-from starlette.authentication import AuthenticationBackend, AuthenticationError, AuthCredentials
+from starlette.authentication import AuthCredentials, AuthenticationBackend, AuthenticationError
 from starlette.requests import HTTPConnection
 
-import bases
 from apps.common.handlers import TokensHandler
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.schemas import JWTPayloadSchema
+from bases.exceptions import HandlerException
 
 
 class JWTTokenBackend(AuthenticationBackend):
@@ -24,10 +24,10 @@ class JWTTokenBackend(AuthenticationBackend):
 
         try:
             payload: JWTPayloadSchema = TokensHandler.read_code(code=token, convert_to=JWTPayloadSchema)
-            user_model: UserModel = await UsersHandler().retrieve_user(
+            user_model: UserModel = await UsersHandler(request=conn).retrieve_user(
                 request=conn, query={"_id": payload.object_id, "is_active": True}
             )
-        except bases.exceptions.HandlerException as error:
+        except HandlerException as error:
             raise AuthenticationError(str(error)) from error
 
         # request.auth, request.user

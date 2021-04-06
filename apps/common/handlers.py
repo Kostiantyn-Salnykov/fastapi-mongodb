@@ -6,12 +6,13 @@ import typing
 
 import jwt
 
-import bases
 import settings
+from apps.common.enums import CodeAudiences
+from bases.exceptions import HandlerException
+from bases.helpers import utc_now
+from bases.schemas import BaseSchema
 
 __all__ = ["PasswordsHandler", "TokensHandler"]
-
-from apps.common.enums import CodeAudiences
 
 
 class PasswordsHandler:
@@ -66,7 +67,7 @@ class TokensHandler:
     ) -> str:
         if data is None:
             data = {}
-        now = bases.helpers.utc_now()
+        now = utc_now()
         if iat is None:
             iat = now
         if exp is None:
@@ -85,7 +86,7 @@ class TokensHandler:
         aud: CodeAudiences = CodeAudiences.ACCESS_TOKEN,  # Audience
         iss: str = "",  # Issuer
         leeway: int = 0,  # provide extra time in seconds to validate (iat, exp, nbf)
-        convert_to: typing.Type[bases.schemas.BaseSchema] = None,
+        convert_to: typing.Type[BaseSchema] = None,
     ):
         try:
             payload = jwt.decode(
@@ -99,17 +100,15 @@ class TokensHandler:
             if convert_to is not None:
                 payload = convert_to(**payload)  # noqa
         except jwt.exceptions.InvalidIssuerError as error:
-            raise bases.exceptions.HandlerException("Invalid JWT issuer.") from error
+            raise HandlerException("Invalid JWT issuer.") from error
         except jwt.exceptions.InvalidAudienceError as error:
-            raise bases.exceptions.HandlerException("Invalid JWT audience.") from error
-        except jwt.exceptions.InvalidIssuedAtError as error:
-            raise bases.exceptions.HandlerException("Invalid JWT issued at.") from error
+            raise HandlerException("Invalid JWT audience.") from error
         except jwt.exceptions.ExpiredSignatureError as error:
-            raise bases.exceptions.HandlerException("Expired JWT token.") from error
+            raise HandlerException("Expired JWT token.") from error
         except jwt.exceptions.ImmatureSignatureError as error:
-            raise bases.exceptions.HandlerException("The token is not valid yet.") from error
+            raise HandlerException("The token is not valid yet.") from error
         # base error exception from pyjwt
         except jwt.exceptions.PyJWTError as error:
-            raise bases.exceptions.HandlerException("Invalid JWT.") from error
+            raise HandlerException("Invalid JWT.") from error
         else:
             return payload

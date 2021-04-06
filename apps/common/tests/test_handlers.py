@@ -1,13 +1,13 @@
 import datetime
-import typing
 
-import jwt
 from apps.common.enums import CodeAudiences
-import bases
 from apps.common.handlers import PasswordsHandler, TokensHandler
+from bases.exceptions import HandlerException
+from bases.helpers import AsyncTestCase, utc_now
+from bases.schemas import BaseSchema
 
 
-class TestPasswordsHandler(bases.helpers.AsyncTestCaseWithPathing):
+class TestPasswordsHandler(AsyncTestCase):
     def setUp(self) -> None:
         self.passwords_handler = PasswordsHandler()
 
@@ -38,8 +38,8 @@ class TestPasswordsHandler(bases.helpers.AsyncTestCaseWithPathing):
         self.assertFalse(result)
 
 
-class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
-    class TestModel(bases.schemas.BaseSchema):
+class TestTokensHandler(AsyncTestCase):
+    class TestModel(BaseSchema):
         # JWT options
         iss: str
         iat: datetime.datetime
@@ -83,17 +83,12 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
 
     def test_create_read_code_custom(self):
         test_data = self.get_test_data()
-        now = bases.helpers.utc_now()
+        now = utc_now()
         custom_claims = self.get_custom_claims()
         test_data |= custom_claims
 
         code = self.tokens_handler.create_code(
-            data=test_data,
-            iat=now,
-            exp=now,
-            nbf=now,
-            aud=CodeAudiences.EMAIL_RESET,
-            **custom_claims
+            data=test_data, iat=now, exp=now, nbf=now, aud=CodeAudiences.EMAIL_RESET, **custom_claims
         )
 
         parsed = self.tokens_handler.read_code(
@@ -109,27 +104,27 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
         self.assertDictEqual(test_data, parsed.dict(include={key for key in test_data.keys()}))
 
     def test_read_code_exception_exp(self):
-        now = bases.helpers.utc_now()
+        now = utc_now()
         code = self.tokens_handler.create_code(exp=now - datetime.timedelta(seconds=1))
 
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
         self.assertEqual("Expired JWT token.", str(exception_context.exception))
 
     def test_read_code_exception_nbf(self):
-        now = bases.helpers.utc_now()
+        now = utc_now()
         code = self.tokens_handler.create_code(nbf=now + datetime.timedelta(seconds=1))
 
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
         self.assertEqual("The token is not valid yet.", str(exception_context.exception))
 
     def test_read_code_leeway(self):
-        now = bases.helpers.utc_now()
+        now = utc_now()
         code = self.tokens_handler.create_code(exp=now - datetime.timedelta(seconds=1))
 
         parsed = self.tokens_handler.read_code(code=code, leeway=1)
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
 
         self.assertEqual("Expired JWT token.", str(exception_context.exception))
@@ -138,7 +133,7 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
     def test_read_code_exception_aud(self):
         code = self.tokens_handler.create_code()
 
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code, aud=CodeAudiences.REFRESH_TOKEN)
 
         self.assertEqual("Invalid JWT audience.", str(exception_context.exception))
@@ -146,13 +141,13 @@ class TestTokensHandler(bases.helpers.AsyncTestCaseWithPathing):
     def test_read_code_exception_iss(self):
         code = self.tokens_handler.create_code(iss=self.faker.pystr())
 
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=code)
 
         self.assertEqual("Invalid JWT issuer.", str(exception_context.exception))
 
     def test_read_code_exception_invalid_jwt(self):
-        with self.assertRaises(expected_exception=bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(expected_exception=HandlerException) as exception_context:
             self.tokens_handler.read_code(code=self.faker.pystr())
 
         self.assertEqual("Invalid JWT.", str(exception_context.exception))

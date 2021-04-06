@@ -5,8 +5,8 @@ import bson
 import pydantic
 import pymongo
 
-import bases.config  # noqa
-import bases.types
+from bases.config import BaseConfiguration
+from bases.types import OID
 
 
 class BaseCreatedUpdatedModel(pydantic.BaseModel):
@@ -17,9 +17,9 @@ class BaseCreatedUpdatedModel(pydantic.BaseModel):
 class BaseDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
-    id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")
+    id: typing.Optional[OID] = pydantic.Field(alias="_id")
 
-    class Config(bases.config.BaseConfiguration):
+    class Config(BaseConfiguration):
         """configuration class"""
 
         sorting_fields: list[str] = []

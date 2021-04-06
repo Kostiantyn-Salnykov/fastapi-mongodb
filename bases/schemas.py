@@ -3,14 +3,14 @@ import typing
 
 import pydantic
 
-import bases.config  # noqa
-import bases.types
+from bases.config import BaseConfiguration
+from bases.types import OID
 
 
 class BaseSchema(pydantic.BaseModel):
     """Class using as a base class for schemas.py"""
 
-    class Config(bases.config.BaseConfiguration):
+    class Config(BaseConfiguration):
         """configuration class"""
 
 
@@ -22,10 +22,14 @@ class CreatedUpdatedBaseSchema(pydantic.BaseModel):
 
 
 class InsertOneResultSchema(BaseSchema):
+    """Insertion result from MongoDB"""
+
     acknowledged: bool
-    inserted_id: bases.types.OID
+    inserted_id: OID
 
 
 class DeleteResultSchema(BaseSchema):
+    """Delete result from MongoDB"""
+
     acknowledged: bool
     deleted_count: int

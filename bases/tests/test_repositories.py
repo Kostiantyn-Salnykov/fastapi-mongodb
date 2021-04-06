@@ -3,17 +3,20 @@ from unittest.mock import MagicMock
 import fastapi
 import pymongo
 from bson import ObjectId
-from pymongo.results import InsertOneResult, InsertManyResult, DeleteResult, UpdateResult
+from pymongo.results import DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
 
-import bases
+from bases.exceptions import RepositoryException
+from bases.helpers import AsyncTestCase
+from bases.models import BaseDBModel
+from bases.repositories import BaseRepository, BaseRepositoryConfig
 
 
-class TestBaseRepositoryConfig(bases.helpers.AsyncTestCaseWithPathing):
-    class BaseDBModelMock(bases.models.BaseDBModel):
+class TestBaseRepositoryConfig(AsyncTestCase):
+    class BaseDBModelMock(BaseDBModel):
         pass
 
     def setUp(self) -> None:
-        self.base_repository_config_class = bases.repositories.BaseRepositoryConfig
+        self.base_repository_config_class = BaseRepositoryConfig
 
     def test__init__(self):
         instance = self.base_repository_config_class(convert_to=self.BaseDBModelMock)
@@ -26,26 +29,31 @@ class TestBaseRepositoryConfig(bases.helpers.AsyncTestCaseWithPathing):
         with self.assertRaises(NotImplementedError) as exception_context:
             self.base_repository_config_class()
 
-        self.assertEqual("Set 'convert_to' attribute or set 'convert' to False", str(exception_context.exception))
+        self.assertEqual(
+            "Set 'convert_to' attribute or set 'convert' to False",
+            str(exception_context.exception),
+        )
 
     def test__init__convert_to_invalid(self):
         with self.assertRaises(NotImplementedError) as exception_context:
             self.base_repository_config_class(convert_to=MagicMock())
 
         self.assertEqual(
-            f"'convert_to' kwarg must be a subclass from '{bases.models.BaseDBModel.__name__}'",
+            f"'convert_to' kwarg must be a subclass from '{BaseDBModel.__name__}'",
             str(exception_context.exception),
         )
 
 
-class TestBaseRepository(bases.helpers.MongoDBTestCase):
+class TestBaseRepository(AsyncTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.col_name = "TEST_COL"
         self.obj_name = "TEST_OBJ"
-        self.repository_config = bases.repositories.BaseRepositoryConfig(convert=False)
-        self.repository_class = bases.repositories.BaseRepository(
-            col_name=self.col_name, obj_name=self.obj_name, repository_config=self.repository_config
+        self.repository_config = BaseRepositoryConfig(convert=False)
+        self.repository_class = BaseRepository(
+            col_name=self.col_name,
+            obj_name=self.obj_name,
+            repository_config=self.repository_config,
         )
 
     def test_convert_one_result_disabled(self):
@@ -109,7 +117,7 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
         query_result = None
         repository_config_mock = MagicMock(raise_not_found=True)
 
-        with self.assertRaises(bases.exceptions.RepositoryException) as exception_context:
+        with self.assertRaises(RepositoryException) as exception_context:
             self.repository_class._raise_not_found(result=query_result, repository_config=repository_config_mock)
 
         self.assertEqual(f"{self.obj_name} not found", exception_context.exception.detail)
@@ -121,7 +129,9 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
         repository_config_mock = MagicMock()
         _raise_not_found_mock = self.patch_obj(target=self.repository_class, attribute="_raise_not_found")
         convert_one_result_mock = self.patch_obj(
-            target=self.repository_class, attribute="convert_one_result", return_value=expected_result
+            target=self.repository_class,
+            attribute="convert_one_result",
+            return_value=expected_result,
         )
 
         result = self.repository_class._not_found_convert_flow(
@@ -192,7 +202,8 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
         await self.repository_class.insert_one(document=old_document)
 
         update_one_result = await self.repository_class.update_one(
-            query={"_id": old_document["_id"]}, update={"$set": {old_data_key: new_data_value}}
+            query={"_id": old_document["_id"]},
+            update={"$set": {old_data_key: new_data_value}},
         )
 
         self.assertIsInstance(update_one_result, UpdateResult)
@@ -207,7 +218,11 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
         self.assertEqual(new_data_value, updated_old_document[old_data_key])
 
     async def test_update_many(self):
-        old_key, old_value, new_value = self.faker.pystr(), self.faker.pystr(), self.faker.pystr()
+        old_key, old_value, new_value = (
+            self.faker.pystr(),
+            self.faker.pystr(),
+            self.faker.pystr(),
+        )
         documents = [
             {"_id": ObjectId(), old_key: old_value},
             {"_id": ObjectId(), old_key: old_value},
@@ -303,7 +318,8 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
         await self.repository_class.insert_one(document=old_document)
 
         find_one_and_update_result = await self.repository_class.find_one_and_update(
-            query={"_id": old_document["_id"]}, update={"$set": {old_data_key: new_data_value}}
+            query={"_id": old_document["_id"]},
+            update={"$set": {old_data_key: new_data_value}},
         )
 
         self.assertEqual(old_document, find_one_and_update_result)
@@ -347,10 +363,18 @@ class TestBaseRepository(bases.helpers.MongoDBTestCase):
 
     async def test_bulk_write(self):
         _id, field_name, expected_count = ObjectId(), self.faker.pystr(), 1
-        _check_attrs_list = ["deleted_count", "inserted_count", "matched_count", "modified_count", "upserted_count"]
+        _check_attrs_list = [
+            "deleted_count",
+            "inserted_count",
+            "matched_count",
+            "modified_count",
+            "upserted_count",
+        ]
         operations = [
             pymongo.operations.UpdateOne(
-                filter={"_id": _id}, update={"$set": {field_name: self.faker.pystr()}}, upsert=True
+                filter={"_id": _id},
+                update={"$set": {field_name: self.faker.pystr()}},
+                upsert=True,
             ),
             pymongo.operations.InsertOne(document={"_id": ObjectId(), field_name: self.faker.pystr()}),
             pymongo.operations.UpdateOne(filter={"_id": _id}, update={"$set": {field_name: self.faker.pystr()}}),

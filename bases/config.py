@@ -5,10 +5,10 @@ import bson
 import orjson
 import pydantic
 
-__all__ = ["common_settings", "BaseConfiguration"]
+__all__ = ["bases_settings", "BaseConfiguration"]
 
 
-class CommonSettings(pydantic.BaseSettings):
+class BasesSettings(pydantic.BaseSettings):
     PAGINATION_DEFAULT_LIMIT: int = 100
     PAGINATION_DEFAULT_OFFSET: int = 0
     PAGINATION_MAX_LIMIT: int = 1000
@@ -17,11 +17,11 @@ class CommonSettings(pydantic.BaseSettings):
 
 
 @functools.lru_cache()
-def get_settings() -> CommonSettings:
-    return CommonSettings()
+def get_settings() -> BasesSettings:
+    return BasesSettings()
 
 
-common_settings: CommonSettings = get_settings()
+bases_settings: BasesSettings = get_settings()
 
 
 class BaseConfiguration(pydantic.BaseConfig):

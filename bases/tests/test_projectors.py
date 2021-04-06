@@ -1,27 +1,32 @@
-import bases
 import pydantic
 
+from bases.exceptions import HandlerException
+from bases.helpers import AsyncTestCase
+from bases.models import BaseDBModel
+from bases.projectors import BaseProjector
 
-class TestBaseProjector(bases.helpers.AsyncTestCaseWithPathing):
-    class TestModel(bases.models.BaseDBModel):
+
+class TestBaseProjector(AsyncTestCase):
+    class TestModel(BaseDBModel):
         test: str = pydantic.Field(alias="test_alias")
 
     def setUp(self) -> None:
-        self.projector_instance = bases.projectors.BaseProjector(model_class=self.TestModel)
+        self.projector_instance = BaseProjector(model_class=self.TestModel)
 
     def test__call___error(self):
-        with self.assertRaises(bases.exceptions.HandlerException) as exception_context:
+        with self.assertRaises(HandlerException) as exception_context:
             self.projector_instance(fields_show="test", fields_hide="test")
 
         self.assertEqual(
-            "You can't add 'fieldsShow' and 'fieldsHide' together to Projector", str(exception_context.exception)
+            "You can't add 'fieldsShow' and 'fieldsHide' together to Projector",
+            str(exception_context.exception),
         )
 
     def test__call__(self):
         for fields_show, fields_hide in [("test", None), (None, "test")]:
             with self.subTest():
                 result = self.projector_instance(fields_show=fields_show, fields_hide=fields_hide)
-                self.assertIsInstance(result, bases.projectors.BaseProjector)
+                self.assertIsInstance(result, BaseProjector)
 
     def test_to_db_empty(self):
         result = self.projector_instance(fields_show=None, fields_hide=None).to_db()

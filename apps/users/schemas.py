@@ -4,51 +4,68 @@ import typing
 import bson
 import pydantic
 
-import bases
+from bases.schemas import BaseSchema, CreatedUpdatedBaseSchema
+from bases.types import OID
+
+_ID = pydantic.Field(alias="_id")
+FIRST_NAME = pydantic.Field(max_length=256, example="Jason")
+LAST_NAME = pydantic.Field(max_length=256, example="Voorhees")
+PASSWORD = pydantic.Field(min_length=8, max_length=1024, example="12345678")
 
 
-class CodeSchema(bases.schemas.BaseSchema):
+class CodeSchema(BaseSchema):
     code: typing.Optional[str]
 
 
 # TODO (Make fields.py to remove code duplication) kost:
-class BaseUserSchema(bases.schemas.BaseSchema, bases.schemas.CreatedUpdatedBaseSchema):
-    id: typing.Optional[bases.types.OID] = pydantic.Field(alias="_id")
+class BaseUserSchema(BaseSchema, CreatedUpdatedBaseSchema):
+    id: typing.Optional[OID] = _ID
     email: typing.Optional[pydantic.EmailStr]
-    first_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Jason")
-    last_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
+    first_name: typing.Optional[str] = FIRST_NAME
+    last_name: typing.Optional[str] = LAST_NAME
     is_active: typing.Optional[bool]
     codes: typing.Optional[list[CodeSchema]]
 
 
-class UserCreateSchema(bases.schemas.BaseSchema):
+class UserCreateSchema(BaseSchema):
+    """User create schema"""
+
     email: pydantic.EmailStr
-    first_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Jason")
-    last_name: typing.Optional[str] = pydantic.Field(max_length=256, example="Voorhees")
-    password: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
+    first_name: typing.Optional[str] = FIRST_NAME
+    last_name: typing.Optional[str] = LAST_NAME
+    password: str = PASSWORD
 
 
 class UserUpdateSchema(UserCreateSchema):
+    """User update schema"""
+
     email: typing.Optional[pydantic.EmailStr]
-    password: typing.Optional[str] = pydantic.Field(min_length=8, max_length=1024, example="12345678")
-    codes: typing.Optional[list[CodeSchema]]
+    password: typing.Optional[str] = PASSWORD
 
 
-class UserLoginSchema(bases.schemas.BaseSchema):
+class UserLoginSchema(BaseSchema):
+    """User login schema"""
+
     email: pydantic.EmailStr
-    password: str = pydantic.Field(min_length=8, max_length=1024, example="12345678")
+    password: str = PASSWORD
 
 
-class JWTSchema(bases.schemas.BaseSchema):
+class JWTSchema(BaseSchema):
+    """JWT schema"""
+
     access: typing.Optional[str]
     refresh: typing.Optional[str]
 
 
-class JWTRefreshSchema(bases.schemas.BaseSchema):
+class JWTRefreshSchema(BaseSchema):
+    """JWT refresh schema"""
+
     refresh: pydantic.constr(max_length=4096)
 
 
-class JWTPayloadSchema(bases.schemas.BaseSchema):
+class JWTPayloadSchema(BaseSchema):
+    """JWT payload schema"""
+
     id: str = pydantic.Field()
     exp: datetime.datetime
     iat: datetime.datetime

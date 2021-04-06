@@ -2,18 +2,19 @@ import datetime
 
 import bson
 
-import bases
+from bases.helpers import AsyncTestCase
+from bases.models import BaseCreatedUpdatedModel, BaseDBModel
 
 
-class TestBaseDBModel(bases.helpers.AsyncTestCaseWithPathing):
-    class TestCreatedUpdatedModel(bases.models.BaseDBModel, bases.models.BaseCreatedUpdatedModel):
+class TestBaseDBModel(AsyncTestCase):
+    class TestCreatedUpdatedModel(BaseDBModel, BaseCreatedUpdatedModel):
         test: str
 
-    class TestModel(bases.models.BaseDBModel):
+    class TestModel(BaseDBModel):
         test: str
 
     def setUp(self) -> None:
-        self.model_class = bases.models.BaseDBModel
+        self.model_class = BaseDBModel
 
     def test_from_db_default(self):
         data = {"_id": bson.ObjectId()}
@@ -48,7 +49,10 @@ class TestBaseDBModel(bases.helpers.AsyncTestCaseWithPathing):
 
         object_id_mock.assert_called_once()
         self.assertEqual(expected_object_id, result["_id"])
-        self.assertEqual(expected_object_id.generation_time.replace(tzinfo=None), result["created_datetime"])
+        self.assertEqual(
+            expected_object_id.generation_time.replace(tzinfo=None),
+            result["created_datetime"],
+        )
         self.assertEqual(expected_utc_now, result["updated_datetime"])
         self.assertEqual(model.test, result["test"])
 

@@ -9,13 +9,22 @@ import unittest.mock
 import zoneinfo
 
 import faker
+import httpx
 import motor.motor_asyncio
 import pymongo
 
-import bases
 import settings
+from bases.db import DBHandler  # noqa
+from bases.logging import logger
 
-__all__ = ["MakeAsync", "AsyncTestCaseWithPathing", "MongoDBTestCase", "get_utc_timezone", "utc_now", "as_utc"]
+__all__ = [
+    "MakeAsync",
+    "AsyncTestCase",
+    "BaseProfiler",
+    "get_utc_timezone",
+    "utc_now",
+    "as_utc",
+]
 
 
 class MakeAsync:
@@ -27,9 +36,11 @@ class MakeAsync:
         return wrapper
 
 
-class AsyncTestCaseWithPathing(unittest.IsolatedAsyncioTestCase):
+class FakerMixin:
     faker = faker.Faker()
 
+
+class PatchingTestMixin:
     def __setup_cleanup_and_get_mock(self, *, patcher):
         mock_instance = patcher.start()
         self.addCleanup(patcher.stop)
@@ -51,12 +62,17 @@ class AsyncTestCaseWithPathing(unittest.IsolatedAsyncioTestCase):
         self, target, attribute, return_value, **kwargs
     ) -> typing.Union[unittest.mock.Mock, unittest.mock.MagicMock, unittest.mock.AsyncMock]:
         patcher = unittest.mock.patch.object(
-            target=target, attribute=attribute, new=unittest.mock.PropertyMock(return_value=return_value), **kwargs
+            target=target,
+            attribute=attribute,
+            new=unittest.mock.PropertyMock(return_value=return_value),
+            **kwargs,
         )
         return self.__setup_cleanup_and_get_mock(patcher=patcher)
 
     @staticmethod
-    def create_async_iter_mock(return_value: typing.Iterable) -> unittest.mock.AsyncMock:
+    def create_async_iter_mock(
+        return_value: typing.Iterable,
+    ) -> unittest.mock.AsyncMock:
         async_mock = unittest.mock.AsyncMock()
         async_mock.__aiter__.return_value = return_value
         return async_mock
@@ -72,7 +88,7 @@ class AsyncTestCaseWithPathing(unittest.IsolatedAsyncioTestCase):
         return unittest.mock.AsyncMock(new=AsyncContextManager)
 
 
-class MongoDBTestCase(AsyncTestCaseWithPathing):
+class MongoDBTestMixin(PatchingTestMixin):
     TEST_DB_NAME = settings.Settings.MONGO_TEST_DB_NAME
 
     @staticmethod
@@ -80,16 +96,20 @@ class MongoDBTestCase(AsyncTestCaseWithPathing):
         return motor.motor_asyncio.AsyncIOMotorClient(settings.Settings.MONGO_TEST_URL)
 
     async def _remove_test_database(self):
-        await bases.db.DBHandler.delete_database(name=self.TEST_DB_NAME)
+        await DBHandler.delete_database(name=self.TEST_DB_NAME)
 
     def setUp(self) -> None:
         super().setUp()
         self._mongo_client: pymongo.MongoClient = self._get_client_for_test()
-        self.patch_obj(target=bases.db.DBHandler, attribute="retrieve_client", return_value=self._mongo_client)
         self.patch_obj(
-            target=bases.db.DBHandler,
+            target=DBHandler,
+            attribute="retrieve_client",
+            return_value=self._mongo_client,
+        )
+        self.patch_obj(
+            target=DBHandler,
             attribute="retrieve_database",
-            return_value=bases.db.DBHandler.retrieve_database(name=self.TEST_DB_NAME),
+            return_value=DBHandler.retrieve_database(name=self.TEST_DB_NAME),
         )
         self.addAsyncCleanup(self._remove_test_database)
         self.addClassCleanup(self._mongo_client.close)
@@ -139,24 +159,26 @@ class BaseProfiler:
         tracemalloc.start(self.number_frames) if self.number_frames else tracemalloc.start()
 
     def _end_trace_malloc(self):
-        print("=== START SNAPSHOT ===")
+        logger.debug(msg="=== START SNAPSHOT ===")
         snapshot = tracemalloc.take_snapshot()
         snapshot = snapshot.filter_traces(filters=self._get_trace_malloc_filters())
         for stat in snapshot.statistics(key_type="lineno", cumulative=True):
-            print(stat)
+            logger.debug(msg=f"{stat}")
         if self.show_memory:
             size, peak = tracemalloc.get_traced_memory()
             snapshot_size = tracemalloc.get_tracemalloc_memory()
-            print(
-                f"❕size={self._bytes_to_megabytes(size=size)}, "
+            logger.debug(
+                msg=f"❕size={self._bytes_to_megabytes(size=size)}, "
                 f"❗peak={self._bytes_to_megabytes(size=peak)}, "
                 f"💾snapshot_size={self._bytes_to_megabytes(size=snapshot_size)}"
             )
         if self.clear_traces:
             tracemalloc.clear_traces()
-        print("=== END SNAPSHOT ===")
+        logger.debug(msg="=== END SNAPSHOT ===")
 
-    def _get_trace_malloc_filters(self) -> list[typing.Union[tracemalloc.Filter, tracemalloc.DomainFilter]]:
+    def _get_trace_malloc_filters(
+        self,
+    ) -> list[typing.Union[tracemalloc.Filter, tracemalloc.DomainFilter]]:
         filters = []
         for file_name in self.include_files:
             filters.append(tracemalloc.Filter(inclusive=True, filename_pattern=file_name))
@@ -169,13 +191,14 @@ class BaseProfiler:
         return f"{size / 1024.0 / 1024.0:.{precision}f} MB"
 
     def _print_timing(self, name: str, precision: int = 5):
-        print(f"📊{name} ⏱: {self._end_time - self._start_time:.{precision}f} seconds")
+        logger.debug(f"📊{name} ⏱: {self._end_time - self._start_time:.{precision}f} seconds")
 
 
 @functools.lru_cache()
 def get_utc_timezone() -> zoneinfo.ZoneInfo:
     try:
         import zoneinfo
+
         utc_tz = zoneinfo.ZoneInfo(key="UTC")
     except ImportError:  # pragma: no cover
         utc_tz = datetime.timezone.utc
@@ -188,3 +211,35 @@ def utc_now() -> datetime.datetime:
 
 def as_utc(date_time: datetime.datetime) -> datetime.datetime:
     return date_time.astimezone(tz=get_utc_timezone())
+
+
+class AsyncClientTestMixin:
+    def setUp(self):
+        super().setUp()
+
+        import main
+
+        self.async_client = httpx.AsyncClient(
+            app=main.App,
+            base_url=f"http://{settings.Settings.HOST}{settings.Settings.PORT}",
+        )
+        self.addAsyncCleanup(self.async_client.aclose)
+
+
+class AuthorizationTestMixin:
+    # TODO: make authentication for JWT
+    def setUp(self):
+        super().setUp()
+
+    def make_auth_header(self, token) -> dict[str]:
+        return {"Authorization": f"Bearer {token}"}
+
+
+class AsyncTestCase(
+    FakerMixin,
+    MongoDBTestMixin,
+    AsyncClientTestMixin,
+    unittest.IsolatedAsyncioTestCase,
+):
+    def setUp(self) -> None:
+        super().setUp()

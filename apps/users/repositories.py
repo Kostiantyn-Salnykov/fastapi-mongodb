@@ -1,16 +1,16 @@
 import apps.users.models
-import bases
 from apps.users.config import users_settings
+from bases.repositories import BaseRepository, BaseRepositoryConfig
 
 __all__ = ["UserRepository"]
 
 
-class UserRepository(bases.repositories.BaseRepository):
+class UserRepository(BaseRepository):
     def __init__(
         self,
         col_name: str = users_settings.USERS_COL,
         obj_name: str = "User",
-        repository_config: bases.repositories.BaseRepositoryConfig = bases.repositories.BaseRepositoryConfig(
+        repository_config: BaseRepositoryConfig = BaseRepositoryConfig(
             convert_to=apps.users.models.UserModel
         ),
     ):

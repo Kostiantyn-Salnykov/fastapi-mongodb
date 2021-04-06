@@ -53,7 +53,11 @@ class SortBuilder:
 
     # TODO (Make model_sorting_fields by aliases) kost:
     def to_db(
-        self, *, model, to_pipeline_stage: bool = False, append_sorting_default: bool = True
+        self,
+        *,
+        model,
+        to_pipeline_stage: bool = False,
+        append_sorting_default: bool = True,
     ) -> typing.Union[dict[str, int], list[tuple[str, int]]]:
         model_sorting_fields: list[str] = self._get_model_sorting_fields(model=model)
         field_names = []
@@ -75,12 +79,16 @@ class SortBuilder:
                 list[tuple[str, int]], tuple[str, int]
             ] = self._get_model_sorting_default(model=model)
             self._add_many_to_sorting(
-                mongo_sorting=mongo_sorting, fields=model_sorting_default, to_pipeline_stage=to_pipeline_stage
+                mongo_sorting=mongo_sorting,
+                fields=model_sorting_default,
+                to_pipeline_stage=to_pipeline_stage,
             )
 
         if append_sorting_default and self._id_field_name not in field_names:
             self._add_many_to_sorting(
-                mongo_sorting=mongo_sorting, fields=self.sorting_default, to_pipeline_stage=to_pipeline_stage
+                mongo_sorting=mongo_sorting,
+                fields=self.sorting_default,
+                to_pipeline_stage=to_pipeline_stage,
             )
 
         return mongo_sorting

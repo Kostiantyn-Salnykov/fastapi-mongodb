@@ -10,8 +10,8 @@ import pymongo.errors
 import pymongo.monitoring
 import pymongo.read_concern
 
-import bases
 import settings
+from bases.logging import logger
 
 __all__ = ["db_handler"]
 
@@ -19,18 +19,18 @@ __all__ = ["db_handler"]
 # TODO (Optimize messages for loggers) kost:
 class CommandLogger(pymongo.monitoring.CommandListener):
     def started(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"Command '{event.command_name}' with request id {event.request_id} started on server {event.connection_id}"
         )
 
     def succeeded(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"Command '{event.command_name}' with request id {event.request_id} on server {event.connection_id} "
             f"succeeded in {event.duration_micros} microseconds"
         )
 
     def failed(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"Command {event.command_name} with request id {event.request_id} on server {event.connection_id} failed "
             f"in {event.duration_micros} microseconds"
         )
@@ -38,90 +38,90 @@ class CommandLogger(pymongo.monitoring.CommandListener):
 
 class ConnectionPoolLogger(pymongo.monitoring.ConnectionPoolListener):
     def pool_created(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}] pool created")
+        logger.debug(f"[pool {event.address}] pool created")
 
     def pool_cleared(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}] pool cleared")
+        logger.debug(f"[pool {event.address}] pool cleared")
 
     def pool_closed(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}] pool closed")
+        logger.debug(f"[pool {event.address}] pool closed")
 
     def connection_created(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection created")
+        logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection created")
 
     def connection_ready(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection setup succeeded")
+        logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection setup succeeded")
 
     def connection_closed(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"[pool {event.address}][conn #{event.connection_id}] connection closed, reason: {event.reason}"
         )
 
     def connection_check_out_started(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}] connection check out started")
+        logger.debug(f"[pool {event.address}] connection check out started")
 
     def connection_check_out_failed(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}] connection check out failed, reason: {event.reason}")
+        logger.debug(f"[pool {event.address}] connection check out failed, reason: {event.reason}")
 
     def connection_checked_out(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"[pool {event.address}][conn #{event.connection_id}] connection checked out of pool"
         )
 
     def connection_checked_in(self, event):
-        bases.logging.logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection checked into pool")
+        logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection checked into pool")
 
 
 class ServerLogger(pymongo.monitoring.ServerListener):
     def opened(self, event):
-        bases.logging.logger.debug(f"Server {event.server_address} added to topology {event.topology_id}")
+        logger.debug(f"Server {event.server_address} added to topology {event.topology_id}")
 
     def description_changed(self, event):
         previous_server_type = event.previous_description.server_type
         new_server_type = event.new_description.server_type
         if new_server_type != previous_server_type:
-            bases.logging.logger.debug(
+            logger.debug(
                 f"Server {event.server_address} changed type from {event.previous_description.server_type_name} to "
                 f"{event.new_description.server_type_name}"
             )
 
     def closed(self, event):
-        bases.logging.logger.debug(f"Server {event.server_address} removed from topology {event.topology_id}")
+        logger.debug(f"Server {event.server_address} removed from topology {event.topology_id}")
 
 
 class HeartbeatLogger(pymongo.monitoring.ServerHeartbeatListener):
     def started(self, event):
-        bases.logging.logger.debug(f"Heartbeat sent to server {event.connection_id}")
+        logger.debug(f"Heartbeat sent to server {event.connection_id}")
 
     def succeeded(self, event):
-        bases.logging.logger.debug(
+        logger.debug(
             f"Heartbeat to server {event.connection_id} succeeded with reply {event.reply.document}"
         )
 
     def failed(self, event):
-        bases.logging.logger.debug(f"Heartbeat to server {event.connection_id} failed with error {event.reply}")
+        logger.debug(f"Heartbeat to server {event.connection_id} failed with error {event.reply}")
 
 
 class TopologyLogger(pymongo.monitoring.TopologyListener):
     def opened(self, event):
-        bases.logging.logger.debug(f"Topology with id {event.topology_id} opened")
+        logger.debug(f"Topology with id {event.topology_id} opened")
 
     def description_changed(self, event):
-        bases.logging.logger.debug(f"Topology description updated for topology id {event.topology_id}")
+        logger.debug(f"Topology description updated for topology id {event.topology_id}")
         previous_topology_type = event.previous_description.topology_type
         new_topology_type = event.new_description.topology_type
         if new_topology_type != previous_topology_type:
-            bases.logging.logger.debug(
+            logger.debug(
                 f"Topology {event.topology_id} changed type from {event.previous_description.topology_type_name} to "
                 f"{event.new_description.topology_type_name}"
             )
         if not event.new_description.has_writable_server():
-            bases.logging.logger.debug("No writable servers available.")
+            logger.debug("No writable servers available.")
         if not event.new_description.has_readable_server():
-            bases.logging.logger.debug("No readable servers available.")
+            logger.debug("No readable servers available.")
 
     def closed(self, event):
-        bases.logging.logger.debug(f"Topology with id {event.topology_id} closed")
+        logger.debug(f"Topology with id {event.topology_id} closed")
 
 
 if settings.Settings.DEBUG:  # pragma: no cover
@@ -146,20 +146,20 @@ class DBHandler:
     def retrieve_client(cls) -> pymongo.MongoClient:
         """Retrieve existing MongoDB client or create it (at first call)"""
         if cls.client is None:
-            bases.logging.logger.debug(msg="Initialization of MongoDB")
+            logger.debug(msg="Initialization of MongoDB")
             cls.create_client()
         return cls.client
 
     @classmethod
     def create_client(cls):
         """Creating MongoDB client"""
-        bases.logging.logger.debug(msg="Creating MongoDB client")
+        logger.debug(msg="Creating MongoDB client")
         cls.client = motor.motor_asyncio.AsyncIOMotorClient(settings.Settings.MONGO_URL)
 
     @classmethod
     def delete_client(cls):
         """Closing MongoDB client"""
-        bases.logging.logger.debug(msg="Disconnecting from MongoDB")
+        logger.debug(msg="Disconnecting from MongoDB")
         cls.client.close()
         cls.client = None  # noqa
 

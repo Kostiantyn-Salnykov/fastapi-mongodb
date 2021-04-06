@@ -46,12 +46,10 @@ class DebugFormatter(logging.Formatter):
 def setup_logging():
     """Setup logging formatter"""
     raw_format = "%(levelname)s %(message)s (%(created)s | %(asctime)s)"
-    debug_format = (
-        "{raw_format}\n{file_format}%(pathname)s{line_format}%(lineno)s".format(
-            raw_format=raw_format,
-            file_format=click.style(text='╰───📃File "', fg="bright_white", bold=True),
-            line_format=click.style(text='", line ', fg="bright_white", bold=True),
-        )
+    debug_format = "{raw_format}\n{file_format}%(pathname)s{line_format}%(lineno)s".format(
+        raw_format=raw_format,
+        file_format=click.style(text='╰───📃File "', fg="bright_white", bold=True),
+        line_format=click.style(text='", line ', fg="bright_white", bold=True),
     )
     logging.addLevelName(level=TRACE, levelName="TRACE")
     logging.addLevelName(level=SUCCESS, levelName="SUCCESS")
