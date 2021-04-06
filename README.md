@@ -1,3 +1,6 @@
+![GitHub](https://img.shields.io/github/license/KosT-NavySky/fastapi_mongodb)
+[![codecov](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb/branch/master/graph/badge.svg)](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb)
+
 # fastapi_mongodb
 
 ## Requirements
