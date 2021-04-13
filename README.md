@@ -3,33 +3,24 @@
 [![codecov](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb/branch/master/graph/badge.svg)](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb)
 [![](https://img.shields.io/badge/code%20style-black-000000?style=flat)](https://github.com/psf/black)
 
-# fastapi_mongodb
+# fastapi-mongodb
 
 ## Requirements
 
 - Python 3.9 +
 - poetry
-- Docker, docker-compose
-
-## Setup
-
-```sh
-docker-compose up
-poetry install
-python run.py
-```
 
 ## Tests
 
 ```
-python -m unittest discover
+poetry run pytest
 ```
 
 ## Coverage
 
 ```
-coverage run -m unittest discover
-coverate report
+poetry run coverage run -m pytest
+poetry coverage report
 ```
 
 ## Roadmap
@@ -46,11 +37,11 @@ coverate report
 - ➕ Application setup (config.py, indexes, collection setup)
 - ➕ Tests and test environment (test DB configuration)
 - ➕ Model Factories (factory_boy)
-- ➕ Pagination (?limit, ?offset)
+- ➕➖ Pagination (?limit, ?offset, ?latest_id)
 - ➕➖ Sorting (?orderBy)
 - ➕➖ Projectors (?showFields, ?hideFields)
 - ➕➖ Trace memory allocations (tracemalloc)
-- ➕➖ BaseProfiler (decorator and context manager / cProfile)
+- ➕➖ BaseProfiler (decorator and context manager and metaclass / cProfile)
 - ➕➖ manage.py commands (setup apps / create apps etc)
 - ➕➖ .Dockerfile and docker-compose.yaml
 - ➕➖ DB setup (db management, db level commands)
