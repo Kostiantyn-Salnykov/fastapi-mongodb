@@ -53,9 +53,7 @@ class ConnectionPoolLogger(pymongo.monitoring.ConnectionPoolListener):
         logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection setup succeeded")
 
     def connection_closed(self, event):
-        logger.debug(
-            f"[pool {event.address}][conn #{event.connection_id}] connection closed, reason: {event.reason}"
-        )
+        logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection closed, reason: {event.reason}")
 
     def connection_check_out_started(self, event):
         logger.debug(f"[pool {event.address}] connection check out started")
@@ -64,9 +62,7 @@ class ConnectionPoolLogger(pymongo.monitoring.ConnectionPoolListener):
         logger.debug(f"[pool {event.address}] connection check out failed, reason: {event.reason}")
 
     def connection_checked_out(self, event):
-        logger.debug(
-            f"[pool {event.address}][conn #{event.connection_id}] connection checked out of pool"
-        )
+        logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection checked out of pool")
 
     def connection_checked_in(self, event):
         logger.debug(f"[pool {event.address}][conn #{event.connection_id}] connection checked into pool")
@@ -94,9 +90,7 @@ class HeartbeatLogger(pymongo.monitoring.ServerHeartbeatListener):
         logger.debug(f"Heartbeat sent to server {event.connection_id}")
 
     def succeeded(self, event):
-        logger.debug(
-            f"Heartbeat to server {event.connection_id} succeeded with reply {event.reply.document}"
-        )
+        logger.debug(f"Heartbeat to server {event.connection_id} succeeded with reply {event.reply.document}")
 
     def failed(self, event):
         logger.debug(f"Heartbeat to server {event.connection_id} failed with error {event.reply}")

@@ -23,7 +23,7 @@ services:
     volumes:
       - ./mongodb/db:/var/mongodb/db/
       - ./mongod.yaml:/etc/mongod.yaml
-    entrypoint: ["mongod", "--config", "/etc/mongod.yaml"]
+#    entrypoint: ["mongod", "--config", "/etc/mongod.yaml"]
   redis:
     env_file:
       - .env
@@ -32,6 +32,8 @@ services:
       - 6379:6379
     restart: always
   redis-insights:
+    env_file:
+      - .env
     image: redislabs/redisinsight
     ports:
       - 8001:8001

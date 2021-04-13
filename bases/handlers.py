@@ -15,9 +15,7 @@ def mongo_duplicate_key_error_handler(
     error_details = error.details.get("keyValue", {})
     for field in fields:
         if field in error_details:
-            raise HandlerException(
-                f"{model_name} with this '{error_details[field]}' {field} already exists"
-            )
+            raise HandlerException(f"{model_name} with this '{error_details[field]}' {field} already exists")
     raise HandlerException("Unexpected duplication error")
 
 

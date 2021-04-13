@@ -1,19 +1,21 @@
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/Kost-NavySky/fastapi_mongodb/Python%20package/master)
 ![GitHub](https://img.shields.io/github/license/KosT-NavySky/fastapi_mongodb)
 [![codecov](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb/branch/master/graph/badge.svg)](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb)
+[![](https://img.shields.io/badge/code%20style-black-000000?style=flat)](https://github.com/psf/black)
 
 # fastapi_mongodb
 
 ## Requirements
 
 - Python 3.9 +
-- pipenv
+- poetry
 - Docker, docker-compose
 
 ## Setup
 
 ```sh
 docker-compose up
-pipenv install
+poetry install
 python run.py
 ```
 

@@ -1,3 +1,48 @@
+# === Poetry ===
+[tool.poetry]
+name = "fastapi_mongodb"
+version = "0.0.1"
+description = "Snippets for FastAPI to work with MongoDB by Motor driver."
+license = "MIT"
+authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
+readme = "README.md"
+homepage = ""
+repository = "https://github.com/KosT-NavySky/fastapi_mongodb"
+documentation = ""
+keywords = ["fastapi", "mongodb", "pydantic", "motor", "pymongo"]
+packages = [
+    {"include" = "bases"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+fastapi = "*"
+orjson = "*"
+uvicorn = "*"
+pydantic = {extras = ["email", "dotenv"],version = "*"}
+typer = "*"
+motor = "*"
+ipython = "*"
+pymongo = {extras = ["tls", "srv"],version = "*"}
+gunicorn = "*"
+coverage = "*"
+faker = "*"
+httpx = "*"
+pyjwt = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+
+[tool.poetry.dev-dependencies]
+pylint = "*"
+black = "*"
+flake8 = "*"
+factory-boy = "*"
+xenon = "*"
+pytest = "*"
+pytest-cov = "*"
+
+# === Pytest ===
 [tool.pytest.ini_options]
 addopts = "--maxfail=1 -rf"
 norecursedirs = ["venv", "mongodb"]
@@ -6,6 +51,7 @@ python_files = ["test*.py"]
 python_functions = ["*_test", "test_*"]
 console_output_style = "progress"
 
+# === Coverage ===
 [tool.coverage.run]
 branch = true
 omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*test*", "*__init__*", "*run.py"]
@@ -21,9 +67,11 @@ exclude_lines = ["pragma: no cover", "def __repr__", "if __name__ = .__main__.:"
 [tool.coverage.html]
 directory = "coverage_html_report"
 
+# === Black ===
 [tool.black]
 line-length = 120
 
+# === Isort ===
 [tool.isort]
 multi_line_output = 3
 include_trailing_comma = true
@@ -32,6 +80,7 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 120
 
+# === Pylint ===
 [tool.pylint.messages_control]
 disable = "C0330, C0326"
 

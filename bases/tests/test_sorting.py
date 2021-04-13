@@ -63,9 +63,7 @@ class TestSortBuilder(AsyncTestCase):
         sorting_fields = []
         expected_result = self.TestModel.Config.sorting_default
 
-        result = SortBuilder(sorting_fields=sorting_fields).to_db(
-            model=self.TestModel, append_sorting_default=False
-        )
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModel, append_sorting_default=False)
 
         self.assertEqual(expected_result, result)
 
@@ -81,9 +79,7 @@ class TestSortBuilder(AsyncTestCase):
             "_id": pymongo.DESCENDING,
         }
 
-        result = SortBuilder(sorting_fields=sorting_fields).to_db(
-            model=self.TestModel, to_pipeline_stage=True
-        )
+        result = SortBuilder(sorting_fields=sorting_fields).to_db(model=self.TestModel, to_pipeline_stage=True)
 
         self.assertEqual(expected_result, result)
 

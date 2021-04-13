@@ -8,6 +8,7 @@ COPY ./ /app
 WORKDIR /app
 
 RUN pip install --upgrade pip
-RUN pip install pipenv
-COPY Pipfile Pipfile.lock /app/
-RUN pipenv install --system --dev --deploy
+RUN pip install poetry
+COPY poetry.lock pyproject.toml /app/
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction --no-ansi

@@ -26,9 +26,7 @@ class BaseRepositoryConfig:
             if self.convert_to is None:
                 raise NotImplementedError("Set 'convert_to' attribute or set 'convert' to False")
             if not inspect.isclass(self.convert_to) or not issubclass(self.convert_to, BaseDBModel):
-                raise NotImplementedError(
-                    f"'convert_to' kwarg must be a subclass from '{BaseDBModel.__name__}'"
-                )
+                raise NotImplementedError(f"'convert_to' kwarg must be a subclass from '{BaseDBModel.__name__}'")
         self.raise_not_found = raise_not_found
 
 

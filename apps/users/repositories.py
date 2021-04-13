@@ -10,8 +10,6 @@ class UserRepository(BaseRepository):
         self,
         col_name: str = users_settings.USERS_COL,
         obj_name: str = "User",
-        repository_config: BaseRepositoryConfig = BaseRepositoryConfig(
-            convert_to=apps.users.models.UserModel
-        ),
+        repository_config: BaseRepositoryConfig = BaseRepositoryConfig(convert_to=apps.users.models.UserModel),
     ):
         super().__init__(col_name=col_name, obj_name=obj_name, repository_config=repository_config)
