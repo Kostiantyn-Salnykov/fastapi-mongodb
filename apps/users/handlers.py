@@ -10,13 +10,13 @@ from apps.common.handlers import PasswordsHandler, TokensHandler
 from apps.users.models import UserModel
 from apps.users.repositories import UserRepository
 from apps.users.schemas import JWTPayloadSchema, JWTRefreshSchema, UserCreateSchema, UserLoginSchema, UserUpdateSchema
-from bases.exceptions import HandlerException, RepositoryException
-from bases.handlers import BaseHandler, mongo_duplicate_key_error_handler
-from bases.pagination import Paginator
-from bases.projectors import BaseProjector
-from bases.repositories import BaseRepositoryConfig
-from bases.sorting import SortBuilder
-from bases.types import OID
+from fastapi_mongodb.exceptions import HandlerException, RepositoryException
+from fastapi_mongodb.handlers import BaseHandler, mongo_duplicate_key_error_handler
+from fastapi_mongodb.pagination import Paginator
+from fastapi_mongodb.projectors import BaseProjector
+from fastapi_mongodb.repositories import BaseRepositoryConfig
+from fastapi_mongodb.sorting import SortBuilder
+from fastapi_mongodb.types import OID
 
 __all__ = ["UsersHandler"]
 

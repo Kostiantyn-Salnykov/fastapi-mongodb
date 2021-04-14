@@ -5,10 +5,10 @@ import pymongo
 from bson import ObjectId
 from pymongo.results import DeleteResult, InsertManyResult, InsertOneResult, UpdateResult
 
-from bases.exceptions import RepositoryException
-from bases.helpers import AsyncTestCase
-from bases.models import BaseDBModel
-from bases.repositories import BaseRepository, BaseRepositoryConfig
+from fastapi_mongodb.exceptions import RepositoryException
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.models import BaseDBModel
+from fastapi_mongodb.repositories import BaseRepository, BaseRepositoryConfig
 
 
 class TestBaseRepositoryConfig(AsyncTestCase):

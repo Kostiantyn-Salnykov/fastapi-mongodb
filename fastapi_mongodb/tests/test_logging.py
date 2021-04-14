@@ -1,5 +1,5 @@
-from bases.helpers import AsyncTestCase
-from bases.logging import TRACE, logger
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.logging import TRACE, logger
 
 
 class TestLogger(AsyncTestCase):

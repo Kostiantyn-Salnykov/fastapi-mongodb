@@ -3,7 +3,7 @@ import abc
 import fastapi
 import pymongo.errors
 
-from bases.exceptions import HandlerException
+from fastapi_mongodb.exceptions import HandlerException
 
 __all__ = ["mongo_duplicate_key_error_handler", "BaseHandler"]
 

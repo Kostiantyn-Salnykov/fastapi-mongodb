@@ -5,7 +5,7 @@ import typer
 
 import settings
 from apps.users.commands import users_commands
-from bases.helpers import MakeAsync
+from fastapi_mongodb.helpers import MakeAsync
 
 app = typer.Typer(name="FastAPI commands")
 app.add_typer(typer_instance=users_commands)
@@ -71,8 +71,8 @@ def get_settings() -> {capitalized_app_name}Settings:
             path=[app_name],
             content=f"""import typer
 
-from bases.db import db_handler
-from bases.helpers import MakeAsync
+from fastapi_mongodb.db import db_handler
+from fastapi_mongodb.helpers import MakeAsync
 from apps.{app_name}.config import {app_name}_settings
 
 __all__ = ["{app_name}_commands"]

@@ -1,9 +1,9 @@
 import pydantic
 
-from bases.exceptions import HandlerException
-from bases.helpers import AsyncTestCase
-from bases.models import BaseDBModel
-from bases.projectors import BaseProjector
+from fastapi_mongodb.exceptions import HandlerException
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.models import BaseDBModel
+from fastapi_mongodb.projectors import BaseProjector
 
 
 class TestBaseProjector(AsyncTestCase):

@@ -1,7 +1,7 @@
 import fastapi
 import httpx
 
-from bases.helpers import AsyncTestCase
+from fastapi_mongodb.helpers import AsyncTestCase
 
 
 class TestUsersRouter(AsyncTestCase):

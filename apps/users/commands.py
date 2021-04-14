@@ -2,8 +2,8 @@ import pymongo
 import typer
 
 from apps.users.config import users_settings
-from bases.db import db_handler
-from bases.helpers import MakeAsync
+from fastapi_mongodb.db import db_handler
+from fastapi_mongodb.helpers import MakeAsync
 
 __all__ = ["users_commands"]
 

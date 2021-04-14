@@ -1,7 +1,7 @@
 import fastapi
 
-from bases.exceptions import PermissionException
-from bases.permissions import BasePermission
+from fastapi_mongodb.exceptions import PermissionException
+from fastapi_mongodb.permissions import BasePermission
 
 
 class IsAuthenticated(BasePermission):

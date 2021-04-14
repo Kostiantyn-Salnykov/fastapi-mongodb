@@ -3,8 +3,8 @@ import typing
 
 import pydantic
 
-from bases.config import BaseConfiguration
-from bases.types import OID
+from fastapi_mongodb.config import BaseConfiguration
+from fastapi_mongodb.types import OID
 
 
 class BaseSchema(pydantic.BaseModel):

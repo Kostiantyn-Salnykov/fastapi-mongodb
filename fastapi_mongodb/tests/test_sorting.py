@@ -2,9 +2,9 @@ import typing
 
 import pymongo
 
-from bases.helpers import AsyncTestCase
-from bases.models import BaseDBModel
-from bases.sorting import BaseSort, SortBuilder
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.models import BaseDBModel
+from fastapi_mongodb.sorting import BaseSort, SortBuilder
 
 
 class TestSortBuilder(AsyncTestCase):

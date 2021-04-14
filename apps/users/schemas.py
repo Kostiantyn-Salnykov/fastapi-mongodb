@@ -4,8 +4,8 @@ import typing
 import bson
 import pydantic
 
-from bases.schemas import BaseSchema, CreatedUpdatedBaseSchema
-from bases.types import OID
+from fastapi_mongodb.schemas import BaseSchema, CreatedUpdatedBaseSchema
+from fastapi_mongodb.types import OID
 
 _ID = pydantic.Field(alias="_id")
 FIRST_NAME = pydantic.Field(max_length=256, example="Jason")

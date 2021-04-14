@@ -4,7 +4,7 @@ import zoneinfo
 
 import faker
 
-from bases.helpers import AsyncTestCase, MakeAsync, as_utc, get_utc_timezone, utc_now
+from fastapi_mongodb.helpers import AsyncTestCase, MakeAsync, as_utc, get_utc_timezone, utc_now
 
 
 class TestMakeAsync(AsyncTestCase):
@@ -76,7 +76,7 @@ class TestGetUTCTimezone(AsyncTestCase):
 class TestUTCNow(AsyncTestCase):
     def test_utc_now(self):
         expected_result = datetime.datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
-        datetime_mock = self.create_patch(target="bases.helpers.datetime.datetime")
+        datetime_mock = self.create_patch(target="fastapi_mongodb.helpers.datetime.datetime")
         datetime_mock.now.return_value = expected_result
 
         result = utc_now()

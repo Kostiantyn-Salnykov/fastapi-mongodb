@@ -1,7 +1,7 @@
 # === Poetry ===
 [tool.poetry]
-name = "fastapi_mongodb"
-version = "0.0.1"
+name = "fastapi-mongodb"
+version = "0.0.1a1"
 description = "Snippets for FastAPI to work with MongoDB by Motor driver."
 license = "MIT"
 authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
@@ -11,7 +11,8 @@ repository = "https://github.com/KosT-NavySky/fastapi_mongodb"
 documentation = ""
 keywords = ["fastapi", "mongodb", "pydantic", "motor", "pymongo"]
 packages = [
-    {"include" = "bases"},
+    {"include" = "fastapi_mongodb"},
+    {"include" = "settings.py"},
 ]
 
 [tool.poetry.dependencies]
@@ -46,7 +47,7 @@ pytest-cov = "*"
 [tool.pytest.ini_options]
 addopts = "--maxfail=1 -rf"
 norecursedirs = ["venv", "mongodb"]
-testpaths = ["apps", "bases"]
+testpaths = ["apps", "fastapi_mongodb"]
 python_files = ["test*.py"]
 python_functions = ["*_test", "test_*"]
 console_output_style = "progress"

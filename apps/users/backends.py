@@ -6,7 +6,7 @@ from apps.common.handlers import TokensHandler
 from apps.users.handlers import UsersHandler
 from apps.users.models import UserModel
 from apps.users.schemas import JWTPayloadSchema
-from bases.exceptions import HandlerException
+from fastapi_mongodb.exceptions import HandlerException
 
 
 class JWTTokenBackend(AuthenticationBackend):

@@ -11,7 +11,7 @@ import pymongo.monitoring
 import pymongo.read_concern
 
 import settings
-from bases.logging import logger
+from fastapi_mongodb.logging import logger
 
 __all__ = ["db_handler"]
 

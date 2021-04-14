@@ -2,8 +2,8 @@ import typing
 
 import fastapi
 
-from bases.exceptions import HandlerException
-from bases.models import BaseDBModel
+from fastapi_mongodb.exceptions import HandlerException
+from fastapi_mongodb.models import BaseDBModel
 
 
 class BaseProjector:

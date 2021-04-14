@@ -14,8 +14,8 @@ import motor.motor_asyncio
 import pymongo
 
 import settings
-from bases.db import DBHandler  # noqa
-from bases.logging import logger
+from fastapi_mongodb.db import DBHandler  # noqa
+from fastapi_mongodb.logging import logger
 
 __all__ = [
     "MakeAsync",

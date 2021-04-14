@@ -7,7 +7,7 @@ from apps.common.middlewares import DBSessionMiddleware, ExceptionsMiddleware
 from apps.users.backends import JWTTokenBackend
 from apps.users.handlers import UsersHandler
 from apps.users.routers import login_router, users_router
-from bases.db import db_handler
+from fastapi_mongodb.db import db_handler
 
 __all__ = ["App"]
 

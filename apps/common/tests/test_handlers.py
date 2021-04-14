@@ -2,9 +2,9 @@ import datetime
 
 from apps.common.enums import CodeAudiences
 from apps.common.handlers import PasswordsHandler, TokensHandler
-from bases.exceptions import HandlerException
-from bases.helpers import AsyncTestCase, utc_now
-from bases.schemas import BaseSchema
+from fastapi_mongodb.exceptions import HandlerException
+from fastapi_mongodb.helpers import AsyncTestCase, utc_now
+from fastapi_mongodb.schemas import BaseSchema
 
 
 class TestPasswordsHandler(AsyncTestCase):

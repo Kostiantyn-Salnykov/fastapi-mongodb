@@ -8,9 +8,9 @@ import jwt
 
 import settings
 from apps.common.enums import CodeAudiences
-from bases.exceptions import HandlerException
-from bases.helpers import utc_now
-from bases.schemas import BaseSchema
+from fastapi_mongodb.exceptions import HandlerException
+from fastapi_mongodb.helpers import utc_now
+from fastapi_mongodb.schemas import BaseSchema
 
 __all__ = ["PasswordsHandler", "TokensHandler"]
 

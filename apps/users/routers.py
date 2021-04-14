@@ -12,11 +12,11 @@ from apps.users.schemas import (
     UserLoginSchema,
     UserUpdateSchema,
 )
-from bases.pagination import LimitOffsetPagination, Paginator
-from bases.projectors import BaseProjector
-from bases.schemas import DeleteResultSchema, InsertOneResultSchema
-from bases.sorting import BaseSort, SortBuilder
-from bases.types import OID
+from fastapi_mongodb.pagination import LimitOffsetPagination, Paginator
+from fastapi_mongodb.projectors import BaseProjector
+from fastapi_mongodb.schemas import DeleteResultSchema, InsertOneResultSchema
+from fastapi_mongodb.sorting import BaseSort, SortBuilder
+from fastapi_mongodb.types import OID
 
 __all__ = ["users_router", "login_router"]
 

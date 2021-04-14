@@ -1,6 +1,6 @@
-from bases.config import bases_settings
-from bases.helpers import AsyncTestCase
-from bases.pagination import LimitOffsetPagination, Paginator
+from fastapi_mongodb.config import bases_settings
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.pagination import LimitOffsetPagination, Paginator
 
 
 class TestLimitOffsetPagination(AsyncTestCase):

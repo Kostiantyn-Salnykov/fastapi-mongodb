@@ -7,9 +7,9 @@ import pymongo.errors
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 import settings
-from bases.db import db_handler
-from bases.exceptions import HandlerException, NotFoundHandlerException, PermissionException, RepositoryException
-from bases.logging import logger
+from fastapi_mongodb.db import db_handler
+from fastapi_mongodb.exceptions import HandlerException, NotFoundHandlerException, PermissionException, RepositoryException
+from fastapi_mongodb.logging import logger
 
 
 class DBSessionMiddleware(BaseHTTPMiddleware):

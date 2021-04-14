@@ -6,4 +6,4 @@ import fastapi
 class BasePermission(abc.ABC):
     @abc.abstractmethod
     def __call__(self, request: fastapi.Request):
-        """Check permissions logic and if no valid raise bases.exceptions.PermissionException."""
+        """Check permissions logic and if no valid raise fastapi_mongodb.exceptions.PermissionException."""

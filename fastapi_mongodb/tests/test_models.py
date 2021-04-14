@@ -2,8 +2,8 @@ import datetime
 
 import bson
 
-from bases.helpers import AsyncTestCase
-from bases.models import BaseCreatedUpdatedModel, BaseDBModel
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.models import BaseCreatedUpdatedModel, BaseDBModel
 
 
 class TestBaseDBModel(AsyncTestCase):
@@ -41,7 +41,7 @@ class TestBaseDBModel(AsyncTestCase):
         expected_object_id = bson.ObjectId()
         object_id_mock = self.patch_obj(target=bson, attribute="ObjectId", return_value=expected_object_id)
         expected_utc_now = datetime.datetime.utcnow()
-        datetime_mock = self.create_patch(target="bases.models.datetime")
+        datetime_mock = self.create_patch(target="fastapi_mongodb.models.datetime")
         datetime_mock.datetime.utcnow.return_value = expected_utc_now
         model = self.TestCreatedUpdatedModel(test=self.faker.pystr())
 

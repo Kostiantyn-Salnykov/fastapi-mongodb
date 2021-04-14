@@ -1,7 +1,7 @@
 import fastapi
 
-from bases.exceptions import PermissionException, RepositoryException
-from bases.helpers import AsyncTestCase
+from fastapi_mongodb.exceptions import PermissionException, RepositoryException
+from fastapi_mongodb.helpers import AsyncTestCase
 
 
 class TestPermissionException(AsyncTestCase):

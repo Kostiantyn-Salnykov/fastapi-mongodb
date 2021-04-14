@@ -1,7 +1,7 @@
 import fastapi
 import pydantic
 
-from bases.config import bases_settings
+from fastapi_mongodb.config import bases_settings
 
 
 class Paginator(pydantic.BaseModel):

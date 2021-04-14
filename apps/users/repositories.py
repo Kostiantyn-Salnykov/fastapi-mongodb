@@ -1,6 +1,6 @@
 import apps.users.models
 from apps.users.config import users_settings
-from bases.repositories import BaseRepository, BaseRepositoryConfig
+from fastapi_mongodb.repositories import BaseRepository, BaseRepositoryConfig
 
 __all__ = ["UserRepository"]
 

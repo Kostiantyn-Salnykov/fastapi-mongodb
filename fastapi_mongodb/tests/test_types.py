@@ -1,7 +1,7 @@
 import unittest.mock
 
-from bases.helpers import AsyncTestCase
-from bases.types import OID
+from fastapi_mongodb.helpers import AsyncTestCase
+from fastapi_mongodb.types import OID
 
 
 class TestOID(AsyncTestCase):

@@ -4,7 +4,7 @@ import pydantic
 import pymongo
 
 from apps.common.enums import CodeAudiences
-from bases.models import BaseCreatedUpdatedModel, BaseDBModel
+from fastapi_mongodb.models import BaseCreatedUpdatedModel, BaseDBModel
 
 
 class UserCode(BaseDBModel):

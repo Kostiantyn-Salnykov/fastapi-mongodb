@@ -8,9 +8,9 @@ import pymongo.database
 import pymongo.operations
 import pymongo.results
 
-from bases.db import DBHandler
-from bases.exceptions import RepositoryException
-from bases.models import BaseDBModel
+from fastapi_mongodb.db import DBHandler
+from fastapi_mongodb.exceptions import RepositoryException
+from fastapi_mongodb.models import BaseDBModel
 
 
 class BaseRepositoryConfig:
