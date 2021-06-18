@@ -80,7 +80,7 @@ class TestBaseRepository(AsyncTestCase):
 
         result = await self.repository_class.convert_many_results(results_cursor=results_cursor_mock)
 
-        self.assertEqual(expected_result, result)
+        self.assertEqual(expected_result, [_ async for _ in result])
 
     async def test_convert_many_results(self):
         test_data_list = self.faker.pylist()

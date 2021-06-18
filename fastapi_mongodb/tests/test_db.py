@@ -7,7 +7,14 @@ import pymongo
 import pymongo.errors
 
 import settings
-from fastapi_mongodb.db import CommandLogger, ConnectionPoolLogger, DBHandler, HeartbeatLogger, ServerLogger, TopologyLogger
+from fastapi_mongodb.db import (
+    CommandLogger,
+    ConnectionPoolLogger,
+    DBHandler,
+    HeartbeatLogger,
+    ServerLogger,
+    TopologyLogger,
+)
 from fastapi_mongodb.helpers import AsyncTestCase
 from fastapi_mongodb.logging import logger
 

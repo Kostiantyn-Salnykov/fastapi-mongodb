@@ -7,7 +7,7 @@ from fastapi_mongodb.models import BaseCreatedUpdatedModel, BaseDBModel
 
 
 class TestBaseDBModel(AsyncTestCase):
-    class TestCreatedUpdatedModel(BaseDBModel, BaseCreatedUpdatedModel):
+    class TestCreatedUpdatedModel(BaseCreatedUpdatedModel):
         test: str
 
     class TestModel(BaseDBModel):
@@ -42,7 +42,8 @@ class TestBaseDBModel(AsyncTestCase):
         object_id_mock = self.patch_obj(target=bson, attribute="ObjectId", return_value=expected_object_id)
         expected_utc_now = datetime.datetime.utcnow()
         datetime_mock = self.create_patch(target="fastapi_mongodb.models.datetime")
-        datetime_mock.datetime.utcnow.return_value = expected_utc_now
+        datetime_mock.datetime.now.return_value = expected_utc_now
+        datetime_mock.timezone.utc = datetime.timezone.utc
         model = self.TestCreatedUpdatedModel(test=self.faker.pystr())
 
         result = model.to_db()
@@ -50,10 +51,10 @@ class TestBaseDBModel(AsyncTestCase):
         object_id_mock.assert_called_once()
         self.assertEqual(expected_object_id, result["_id"])
         self.assertEqual(
-            expected_object_id.generation_time.replace(tzinfo=None),
-            result["created_datetime"],
+            expected_object_id.generation_time.replace(tzinfo=datetime.timezone.utc),
+            result["created_at"],
         )
-        self.assertEqual(expected_utc_now, result["updated_datetime"])
+        self.assertEqual(expected_utc_now, result["updated_at"])
         self.assertEqual(model.test, result["test"])
 
     def test_to_db_from_db_flow(self):
