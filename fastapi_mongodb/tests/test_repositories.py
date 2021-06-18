@@ -95,7 +95,7 @@ class TestBaseRepository(AsyncTestCase):
             results_cursor=results_cursor_mock, repository_config=repository_config_mock
         )
 
-        self.assertEqual(expected_result, result)
+        self.assertEqual(expected_result, [_ async for _ in result])
 
     def test__raise_not_found(self):
         result_dict = self.faker.pydict()
@@ -171,7 +171,7 @@ class TestBaseRepository(AsyncTestCase):
 
         inserted_documents = await self.repository_class.find(query={})
 
-        self.assertEqual(documents, inserted_documents)
+        self.assertEqual(documents, [document async for document in inserted_documents])
 
     async def test_replace_one(self):
         old_data_key, new_data_key = self.faker.pystr(), self.faker.pystr()
@@ -243,7 +243,7 @@ class TestBaseRepository(AsyncTestCase):
 
         find_result = await self.repository_class.find(query={})
 
-        self.assertEqual(expected_documents, find_result)
+        self.assertEqual(expected_documents, [document async for document in find_result])
 
     async def test_delete_one(self):
         document = {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
@@ -277,7 +277,7 @@ class TestBaseRepository(AsyncTestCase):
 
         result = await self.repository_class.find(query={})
 
-        self.assertEqual(documents, result)
+        self.assertEqual(documents, [document async for document in result])
 
     async def test_find_one(self):
         document = {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
@@ -359,7 +359,7 @@ class TestBaseRepository(AsyncTestCase):
 
         result = await self.repository_class.aggregate(pipeline=[])
 
-        self.assertEqual(documents, result)
+        self.assertEqual(documents, [document async for document in result])
 
     async def test_bulk_write(self):
         _id, field_name, expected_count = ObjectId(), self.faker.pystr(), 1
