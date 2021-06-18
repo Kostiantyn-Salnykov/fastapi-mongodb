@@ -9,11 +9,6 @@ from fastapi_mongodb.config import BaseConfiguration
 from fastapi_mongodb.types import OID
 
 
-class BaseCreatedUpdatedModel(pydantic.BaseModel):
-    created_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
-    updated_datetime: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
-
-
 class BaseDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
 
@@ -63,8 +58,33 @@ class BaseDBModel(pydantic.BaseModel):
             # replace "id" to "_id"
             result["_id"] = result.pop("id")
 
-        if BaseCreatedUpdatedModel in self.__class__.__bases__:
-            result["updated_datetime"] = datetime.datetime.utcnow()
-            result["created_datetime"] = result["_id"].generation_time.replace(tzinfo=None)
+        return result
 
+
+class BaseCreatedUpdatedModel(BaseDBModel):
+    created_at: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
+    updated_at: typing.Optional[datetime.datetime] = pydantic.Field(default=None)
+
+    def to_db(
+        self,
+        *,
+        include: typing.Union["pydantic.typing.AbstractSetIntStr", "pydantic.typing.MappingIntStrAny"] = None,
+        exclude: typing.Union["pydantic.typing.AbstractSetIntStr", "pydantic.typing.MappingIntStrAny"] = None,
+        by_alias: bool = True,  # pydantic default is False
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = True,  # pydantic default is False
+    ) -> dict:
+        result = super(BaseCreatedUpdatedModel, self).to_db(
+            include=include,
+            exclude=exclude,
+            by_alias=by_alias,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none
+        )
+        result["updated_at"] = datetime.datetime.now(tz=datetime.timezone.utc)
+        result["created_at"] = result["_id"].generation_time.replace(tzinfo=datetime.timezone.utc)
         return result

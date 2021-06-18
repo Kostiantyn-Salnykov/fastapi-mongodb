@@ -27,12 +27,8 @@ motor = "*"
 ipython = "*"
 pymongo = {extras = ["tls", "srv"],version = "*"}
 gunicorn = "*"
-coverage = "*"
-faker = "*"
 httpx = "*"
 pyjwt = "*"
-mkdocs = "*"
-mkdocs-material = "*"
 
 [tool.poetry.dev-dependencies]
 pylint = "*"
@@ -42,6 +38,11 @@ factory-boy = "*"
 xenon = "*"
 pytest = "*"
 pytest-cov = "*"
+pytest-asyncio = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+coverage = "*"
+faker = "*"
 
 # === Pytest ===
 [tool.pytest.ini_options]

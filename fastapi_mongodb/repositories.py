@@ -46,13 +46,15 @@ class BaseRepository:
             result = repository_config.convert_to.from_db(data=result)
         return result
 
-    async def convert_many_results(self, *, results_cursor, repository_config: BaseRepositoryConfig = None) -> list:
+    async def convert_many_results(
+        self, *, results_cursor, repository_config: BaseRepositoryConfig = None
+    ) -> typing.Generator:
         """Convert result cursor from MongoDB to list of BaseMongoDBModel subclass"""
         repository_config = self.repository_config if repository_config is None else repository_config
         convert_to = repository_config.convert_to or self.repository_config.convert_to
         if repository_config.convert:
-            return [convert_to.from_db(data=result) async for result in results_cursor]
-        return [item async for item in results_cursor]
+            return (convert_to.from_db(data=result) async for result in results_cursor)
+        return (item async for item in results_cursor)
 
     def _raise_not_found(self, *, result, repository_config: BaseRepositoryConfig = None):
         """raise an error if result is None"""

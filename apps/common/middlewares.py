@@ -8,7 +8,12 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 import settings
 from fastapi_mongodb.db import db_handler
-from fastapi_mongodb.exceptions import HandlerException, NotFoundHandlerException, PermissionException, RepositoryException
+from fastapi_mongodb.exceptions import (
+    HandlerException,
+    NotFoundHandlerException,
+    PermissionException,
+    RepositoryException,
+)
 from fastapi_mongodb.logging import logger
 
 
