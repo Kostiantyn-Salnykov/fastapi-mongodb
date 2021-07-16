@@ -1,7 +1,11 @@
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/Kost-NavySky/fastapi-mongodb/Python%20package/master)
 ![GitHub](https://img.shields.io/github/license/KosT-NavySky/fastapi-mongodb)
-[![codecov](https://codecov.io/gh/KosT-NavySky/fastapi_mongodb/branch/master/graph/badge.svg)](https://codecov.io/gh/KosT-NavySky/fastapi-mongodb)
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/Kost-NavySky/fastapi-mongodb/Python%20package/master)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/kost-navysky/fastapi-mongodb/master)
+![Codecov](https://img.shields.io/codecov/c/github/kost-navysky/fastapi-mongodb)
 [![](https://img.shields.io/badge/code%20style-black-000000?style=flat)](https://github.com/psf/black)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/fastapi-mongodb)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/fastapi-mongodb)
+![PyPI](https://img.shields.io/pypi/v/fastapi-mongodb)
 
 # fastapi-mongodb
 
