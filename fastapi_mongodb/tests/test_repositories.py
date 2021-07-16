@@ -346,7 +346,7 @@ class TestBaseRepository(AsyncTestCase):
             documents.append({"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()})
         await self.repository_class.insert_many(documents=documents)
 
-        result = await self.repository_class.estimated_document_count(query={})
+        result = await self.repository_class.estimated_document_count()
 
         self.assertEqual(counter, result)
 
