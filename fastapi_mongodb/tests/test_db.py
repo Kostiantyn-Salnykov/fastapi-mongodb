@@ -326,15 +326,14 @@ class TestDBHandler(AsyncTestCase):
 
     async def test_get_profiling_info(self):
         col_name = self.faker.pystr()
-        level, op, ns = pymongo.ALL, "command", f"{self.test_db_name}.{col_name}"
+        level = pymongo.ALL
         await self.db_handler.set_profiling_level(db_name=self.test_db_name, level=level)
         await self.db_handler.create_collection(name=col_name, db_name=self.test_db_name)
 
         result = await self.db_handler.get_profiling_info(db_name=self.test_db_name)
 
-        self.assertIsInstance(result, list)
-        self.assertEqual(op, result[0]["op"])
-        self.assertEqual(ns, result[0]["ns"])
+        self.assertIn("slowms", result)
+        self.assertEqual(1.0, result["ok"])
 
     async def test_create_collection(self):
         col_name = self.faker.pystr()

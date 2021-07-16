@@ -206,9 +206,9 @@ class DBHandler:
         await client.drop_database(name_or_database=name, session=session)
 
     @classmethod
-    async def get_profiling_info(cls, *, db_name: str, session: pymongo.client_session.ClientSession = None) -> list:
+    async def get_profiling_info(cls, *, db_name: str, session: pymongo.client_session.ClientSession = None) -> dict:
         database = cls.retrieve_database(name=db_name)
-        return await database.profiling_info(session=session)
+        return await database.command(command="profile", session=session)
 
     @classmethod
     async def get_profiling_level(cls, *, db_name: str, session: pymongo.client_session.ClientSession = None) -> int:
@@ -217,10 +217,10 @@ class DBHandler:
 
     @classmethod
     async def set_profiling_level(
-        cls, *, db_name: str, level, slow_ms: int = None, session: pymongo.client_session.ClientSession = None
+        cls, *, db_name: str, level: int, slow_ms: int = None, session: pymongo.client_session.ClientSession = None
     ):
         database = cls.retrieve_database(name=db_name)
-        return await database.set_profiling_level(level=level, slow_ms=slow_ms, session=session)
+        return await database.command(command="profile", level=level, slow_ms=slow_ms, session=session)
 
     @classmethod
     async def create_collection(
