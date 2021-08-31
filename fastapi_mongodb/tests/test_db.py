@@ -196,11 +196,7 @@ class TestTopologyLogger(AsyncTestCase):
         self.debug_mock.assert_called_once_with(f"Topology with id {self.event.topology_id} opened")
 
     def test_description_changed(self):
-        self.event.new_description.has_writable_server.return_value = False
-        self.event.new_description.has_readable_server.return_value = False
-
-        self.logger.description_changed(event=self.event)
-
+        self._extracted_from_test_description_changed_not_changed_2(False)
         self.debug_mock.assert_has_calls(
             calls=[
                 mock_call(f"Topology description updated for topology id {self.event.topology_id}"),
@@ -218,14 +214,15 @@ class TestTopologyLogger(AsyncTestCase):
         expected_mock = MagicMock()
         self.event.previous_description.topology_type = expected_mock
         self.event.new_description.topology_type = expected_mock
-        self.event.new_description.has_writable_server.return_value = True
-        self.event.new_description.has_readable_server.return_value = True
-
-        self.logger.description_changed(event=self.event)
-
+        self._extracted_from_test_description_changed_not_changed_2(True)
         self.debug_mock.assert_called_once_with(
             f"Topology description updated for topology id {self.event.topology_id}"
         )
+
+    def _extracted_from_test_description_changed_not_changed_2(self, arg0):
+        self.event.new_description.has_writable_server.return_value = arg0
+        self.event.new_description.has_readable_server.return_value = arg0
+        self.logger.description_changed(event=self.event)
 
     def test_closed(self):
         self.logger.closed(event=self.event)

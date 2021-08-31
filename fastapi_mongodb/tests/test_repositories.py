@@ -99,17 +99,17 @@ class TestBaseRepository(AsyncTestCase):
 
     def test__raise_not_found(self):
         result_dict = self.faker.pydict()
-        repository_config_mock = MagicMock(raise_not_found=True)
-
-        result = self.repository_class._raise_not_found(result=result_dict, repository_config=repository_config_mock)
-
-        self.assertIsNone(result)
+        self._extracted_from_test__raise_not_found_disabled_3(True, result_dict)
 
     def test__raise_not_found_disabled(self):
         query_result = None
-        repository_config_mock = MagicMock(raise_not_found=False)
+        self._extracted_from_test__raise_not_found_disabled_3(False, query_result)
 
-        result = self.repository_class._raise_not_found(result=query_result, repository_config=repository_config_mock)
+    def _extracted_from_test__raise_not_found_disabled_3(self, raise_not_found, result):
+        repository_config_mock = MagicMock(raise_not_found=raise_not_found)
+        result = self.repository_class._raise_not_found(
+            result=result, repository_config=repository_config_mock
+        )
 
         self.assertIsNone(result)
 
@@ -330,9 +330,11 @@ class TestBaseRepository(AsyncTestCase):
 
     async def test_count_documents(self):
         counter = self.faker.pyint(min_value=2, max_value=10)
-        documents = []
-        for _ in range(counter):
-            documents.append({"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()})
+        documents = [
+            {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
+            for _ in range(counter)
+        ]
+
         await self.repository_class.insert_many(documents=documents)
 
         result = await self.repository_class.count_documents(query={})
@@ -341,9 +343,11 @@ class TestBaseRepository(AsyncTestCase):
 
     async def test_estimated_document_count(self):
         counter = self.faker.pyint(min_value=2, max_value=10)
-        documents = []
-        for _ in range(counter):
-            documents.append({"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()})
+        documents = [
+            {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
+            for _ in range(counter)
+        ]
+
         await self.repository_class.insert_many(documents=documents)
 
         result = await self.repository_class.estimated_document_count()
