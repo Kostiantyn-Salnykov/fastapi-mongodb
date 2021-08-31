@@ -13,9 +13,9 @@ class TestLimitOffsetPagination(AsyncTestCase):
 
         result = self.pagination_instance(limit=default_limit, offset=default_offset)
 
-        self.assertIsInstance(result, Paginator)
-        self.assertEqual(default_limit, result.limit)
-        self.assertEqual(default_offset, result.skip)
+        self._extracted_from_test__call__custom_7(
+            result, default_limit, default_offset
+        )
 
     def test__call__custom(self):
         custom_limit = self.faker.pyint(
@@ -26,6 +26,9 @@ class TestLimitOffsetPagination(AsyncTestCase):
 
         result = self.pagination_instance(offset=custom_offset, limit=custom_limit)
 
+        self._extracted_from_test__call__custom_7(result, custom_limit, custom_offset)
+
+    def _extracted_from_test__call__custom_7(self, result, arg1, arg2):
         self.assertIsInstance(result, Paginator)
-        self.assertEqual(custom_limit, result.limit)
-        self.assertEqual(custom_offset, result.skip)
+        self.assertEqual(arg1, result.limit)
+        self.assertEqual(arg2, result.skip)

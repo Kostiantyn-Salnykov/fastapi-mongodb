@@ -127,8 +127,8 @@ class BaseProfiler:
     ):
         self.number_frames = number_frames
         self.clear_traces = clear_traces
-        self.include_files = include_files if include_files else []
-        self.exclude_files = exclude_files if exclude_files else []
+        self.include_files = include_files or []
+        self.exclude_files = exclude_files or []
         self.show_memory = show_memory
         self._start_time = None
         self._end_time = None
@@ -179,9 +179,11 @@ class BaseProfiler:
     def _get_trace_malloc_filters(
         self,
     ) -> list[typing.Union[tracemalloc.Filter, tracemalloc.DomainFilter]]:
-        filters = []
-        for file_name in self.include_files:
-            filters.append(tracemalloc.Filter(inclusive=True, filename_pattern=file_name))
+        filters = [
+            tracemalloc.Filter(inclusive=True, filename_pattern=file_name)
+            for file_name in self.include_files
+        ]
+
         for file_name in self.exclude_files:
             filters.append(tracemalloc.Filter(inclusive=False, filename_pattern=file_name))
         return filters
