@@ -54,7 +54,7 @@ class BaseRepository:
         convert_to = repository_config.convert_to or self.repository_config.convert_to
         if repository_config.convert:
             return (convert_to.from_db(data=result) async for result in results_cursor)
-        return iter(results_cursor)
+        return (item async for item in results_cursor)
 
     def _raise_not_found(self, *, result, repository_config: BaseRepositoryConfig = None):
         """raise an error if result is None"""
