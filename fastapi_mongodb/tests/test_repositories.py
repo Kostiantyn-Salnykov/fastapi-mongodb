@@ -330,11 +330,9 @@ class TestBaseRepository(AsyncTestCase):
 
     async def test_count_documents(self):
         counter = self.faker.pyint(min_value=2, max_value=10)
-        documents = [
-            {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
-            for _ in range(counter)
-        ]
-
+        documents = []
+        for _ in range(counter):
+            documents.append({"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()})
         await self.repository_class.insert_many(documents=documents)
 
         result = await self.repository_class.count_documents(query={})
@@ -343,11 +341,9 @@ class TestBaseRepository(AsyncTestCase):
 
     async def test_estimated_document_count(self):
         counter = self.faker.pyint(min_value=2, max_value=10)
-        documents = [
-            {"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()}
-            for _ in range(counter)
-        ]
-
+        documents = []
+        for _ in range(counter):
+            documents.append({"_id": ObjectId(), self.faker.pystr(): self.faker.pystr()})
         await self.repository_class.insert_many(documents=documents)
 
         result = await self.repository_class.estimated_document_count()
