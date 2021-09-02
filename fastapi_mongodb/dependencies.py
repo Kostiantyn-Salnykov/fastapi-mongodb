@@ -1,8 +1,7 @@
 import fastapi
-
-import fastapi_mongodb.db
 import pymongo.client_session
 
+import fastapi_mongodb.db
 
 __all__ = ["DBSession"]
 

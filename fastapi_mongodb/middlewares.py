@@ -1,7 +1,7 @@
 """Application middleware classes"""
 
 import fastapi
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint, DispatchFunction
+from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction, RequestResponseEndpoint
 from starlette.types import ASGIApp
 
 from fastapi_mongodb.db import BaseDBManager

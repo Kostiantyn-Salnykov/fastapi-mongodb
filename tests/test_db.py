@@ -108,7 +108,7 @@ class TestTimeDeltaCodec:
 
 @pytest.fixture()
 def patch_logging(patcher):
-    yield patcher.patch_obj(target=fastapi_mongodb.logging.simple_logger, attribute="debug")
+    yield patcher.patch_attr(target=fastapi_mongodb.logging.simple_logger, attribute="debug")
 
 
 @pytest.fixture()
