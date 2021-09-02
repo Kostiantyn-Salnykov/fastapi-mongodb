@@ -13,6 +13,8 @@ from fastapi_mongodb.config import BaseConfiguration
 from fastapi_mongodb.repositories import BaseRepository
 from fastapi_mongodb.types import OID
 
+__all__ = ["BaseDBModel", "BaseCreatedUpdatedModel", "BaseActiveRecord"]
+
 
 class BaseDBModel(pydantic.BaseModel):
     """Class for MongoDB (class data view)"""
@@ -120,7 +122,7 @@ class BaseActiveRecord:
         self._unset_data = {}
 
     def __repr__(self):
-        data = f"_id={doc_id}" if (doc_id := self.id) else "NO DOCUMENT _id"
+        data = f"oid={doc_id}" if (doc_id := self.id) else "NO DOCUMENT id"
         return f"{self.__class__.__name__}({data})"
 
     def __setitem__(self, key, value):
@@ -134,20 +136,30 @@ class BaseActiveRecord:
         self._document.__delitem__(key)
         self._unset_data[key] = None
 
+    def __contains__(self, item):
+        if item in self._document.keys():
+            return True
+        return False
+
     @property
     def oid(self):
-        return self._document.get("_id", None)
+        try:
+            return self._document["_id"]
+        except KeyError:
+            fastapi_mongodb.simple_logger.warning(msg="Document already deleted or has not been created yet!")
+            return None
 
     @property
     def id(self):
         return str(self.oid) if self.oid else None
 
     @property
-    def generated_at(self):
+    def generated_at(self) -> typing.Optional[datetime.datetime]:
         try:
             return self._document["_id"].generation_time.astimezone(tz=fastapi_mongodb.helpers.get_utc_timezone())
-        except KeyError as error:
-            raise AttributeError("Document has not been created yet!") from error
+        except KeyError:
+            fastapi_mongodb.simple_logger.warning(msg="Document already deleted or has not been created yet!")
+            return None
 
     def get_collection(self) -> pymongo.collection.Collection:
         return self._repository.col

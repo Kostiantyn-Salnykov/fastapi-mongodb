@@ -5,7 +5,6 @@ import orjson
 import pydantic
 import pydantic.json
 
-
 __all__ = ["BaseConfiguration"]
 
 

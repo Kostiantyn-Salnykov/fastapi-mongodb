@@ -1,19 +1,12 @@
 import bson
 import motor.motor_asyncio
-import pytest
 import pymongo.results
-import fastapi_mongodb.repositories
+import pytest
 
 pytestmark = [pytest.mark.asyncio]
 
 
 class TestBaseRepository:
-    @pytest.fixture(scope="class")
-    def repository(self, db_manager):
-        return fastapi_mongodb.repositories.BaseRepository(
-            db_manager=db_manager, db_name="test_db", col_name="test_col"
-        )
-
     def test_properties(self, repository, db_manager):
 
         assert repository.db == db_manager.retrieve_database(name="test_db")

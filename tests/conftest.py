@@ -20,15 +20,15 @@ class Patcher:
     def __init__(self):
         self.current_patcher = None
 
-    def patch(self, target, **kwargs):
+    def patch_obj(self, target: str, **kwargs):
         self.current_patcher = unittest.mock.patch(target=target, **kwargs)
         return self.current_patcher.start()
 
-    def patch_obj(self, target, attribute, **kwargs):
+    def patch_attr(self, target, attribute: str, **kwargs):
         self.current_patcher = unittest.mock.patch.object(target=target, attribute=attribute, **kwargs)
         return self.current_patcher.start()
 
-    def patch_property(self, target, attribute, return_value, **kwargs):
+    def patch_property(self, target, attribute: str, return_value, **kwargs):
         self.current_patcher = unittest.mock.patch.object(
             target=target, attribute=attribute, new=unittest.mock.PropertyMock(return_value=return_value), **kwargs
         )
@@ -94,3 +94,8 @@ def mongodb_db(mongodb_client) -> motor.motor_asyncio.AsyncIOMotorDatabase:
 async def mongodb_session(mongodb_client) -> motor.motor_asyncio.AsyncIOMotorClientSession:
     async with await mongodb_client.start_session() as session:
         yield session
+
+
+@pytest.fixture(scope="class")
+def repository(db_manager):
+    return fastapi_mongodb.repositories.BaseRepository(db_manager=db_manager, db_name="test_db", col_name="test_col")

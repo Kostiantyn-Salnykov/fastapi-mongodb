@@ -16,7 +16,7 @@ class TestHelpers:
     def test_utc_now(self, patcher: Patcher):
         expected_zoneinfo = zoneinfo.ZoneInfo("UTC")
         expected_now = datetime.datetime.now(tz=expected_zoneinfo)
-        datetime_mock = patcher.patch(target="fastapi_mongodb.helpers.datetime.datetime")
+        datetime_mock = patcher.patch_obj(target="fastapi_mongodb.helpers.datetime.datetime")
         datetime_mock.now.return_value = expected_now
 
         result = fastapi_mongodb.helpers.utc_now()

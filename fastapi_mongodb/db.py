@@ -53,7 +53,7 @@ class BaseDocument(collections.abc.MutableMapping):
         return iter(self._data)
 
     def __repr__(self):
-        data = f"_id={doc_id}" if (doc_id := self.id) else "NO DOCUMENT _id"
+        data = f"oid={doc_id}" if (doc_id := self.id) else "NO DOCUMENT id"
         return f"{self.__class__.__name__}({data})"
 
     def __eq__(self, other):
