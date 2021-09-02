@@ -13,12 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9]
-
-    services:
-      mongodb:
-        image: mongo:latest
-        ports:
-          - 27017:27017
+        mongodb_version: [5.0]
 
     steps:
     - uses: actions/checkout@v2
@@ -31,6 +26,11 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest poetry
         poetry install --no-interaction --no-ansi
+    - name: MongoDB in GitHub Actions
+      uses: supercharge/mongodb-github-action@1.6.0
+      with:
+        - mongodb-version: ${{ matrix.mongodb-verision}}
+        - mongodb-replica-set: rs-test
     - name: Lint with flake8
       run: |
         poetry run flake8
