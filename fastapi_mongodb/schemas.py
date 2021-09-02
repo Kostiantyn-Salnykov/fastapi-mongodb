@@ -16,7 +16,7 @@ class BaseSchema(pydantic.BaseModel):
         """configuration class"""
 
 
-class CreatedUpdatedBaseSchema(BaseSchema):
+class BaseCreatedUpdatedSchema(BaseSchema):
     """Append datetime fields for schema"""
 
     created_at: typing.Optional[datetime.datetime]
