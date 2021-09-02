@@ -1,0 +1,45 @@
+name: Python package
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest poetry
+        poetry install --no-interaction --no-ansi
+    - name: Lint with flake8
+      run: |
+        poetry run flake8
+    - name: Test with pytest
+      run: |
+        poetry run pytest
+    - name: Generate Report
+      run: |
+        pip install coverage
+        poetry run coverage run -m pytest
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v1

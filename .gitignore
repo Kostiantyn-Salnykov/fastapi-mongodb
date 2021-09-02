@@ -1,0 +1,9 @@
+.idea
+.env
+venv
+.pytest_cache
+.vscode
+.coverage
+coverate_html_report
+dist
+poetry.lock

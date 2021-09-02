@@ -1,0 +1,88 @@
+[tool.poetry]
+name = "fastapi-mongodb"
+version = "0.0.1b1"
+description = "Snippets for FastAPI to work with MongoDB by Motor driver."
+license = "MIT"
+authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
+readme = "README.md"
+homepage = ""
+repository = "https://github.com/KosT-NavySky/fastapi_mongodb"
+documentation = ""
+keywords = ["fastapi", "mongodb", "pydantic", "motor", "pymongo", "orjson", "pyjwt"]
+packages = [
+    {"include" = "fastapi_mongodb"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "*"
+motor = "*"
+pymongo = {extras = ["tls", "srv"], version = "*"}
+pydantic = {extras = ["email", "dotenv"], version = "*"}
+pyjwt = "*"
+orjson = "*"
+
+[tool.poetry.dev-dependencies]
+uvicorn = "*"
+httpx = "*"
+ipython = "*"
+pylint = "*"
+black = "*"
+flake8 = "*"
+factory-boy = "*"
+xenon = "*"
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+coverage = "*"
+faker = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# === Pytest ===
+[tool.pytest.ini_options]
+#addopts = "--maxfail=1 -rf"
+norecursedirs = ["venv", "mongodb",]
+testpaths = ["tests",]
+python_files = ["test*.py"]
+python_functions = ["*_test", "test_*"]
+console_output_style = "progress"
+
+# === Coverage ===
+[tool.coverage.run]
+branch = true
+source = ["fastapi_mongodb"]
+#omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*test*", "*__init__*", "*run.py"]
+
+[tool.coverage.report]
+# show_missing = true
+ignore_errors = true
+sort = "Cover"
+precision = 4
+omit = ["*/.local/*", "*/.idea/*", "*./venv/*", "*test*", "*__init__*", "*run.py"]
+exclude_lines = ["pragma: no cover", "def __repr__", "if __name__ = .__main__.:"]
+
+[tool.coverage.html]
+directory = "coverage_html_report"
+
+# === Black ===
+[tool.black]
+line-length = 120
+
+# === Isort ===
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 120
+
+# === Pylint ===
+[tool.pylint.messages_control]
+disable = "C0330, C0326"
+
+[tool.pylint.format]
+max-line-length = "120"
