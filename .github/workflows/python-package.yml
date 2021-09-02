@@ -29,8 +29,8 @@ jobs:
     - name: MongoDB in GitHub Actions
       uses: supercharge/mongodb-github-action@1.6.0
       with:
-        - mongodb-version: ${{ matrix.mongodb-verision}}
-        - mongodb-replica-set: rs-test
+        mongodb-version: ${{ matrix.mongodb-verision}}
+        mongodb-replica-set: rs-test
     - name: Lint with flake8
       run: |
         poetry run flake8
