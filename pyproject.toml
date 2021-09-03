@@ -36,6 +36,8 @@ pytest-asyncio = "*"
 pytest-cov = "*"
 coverage = "*"
 faker = "*"
+pyupgrade = "^2.25.0"
+bandit = "^1.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
