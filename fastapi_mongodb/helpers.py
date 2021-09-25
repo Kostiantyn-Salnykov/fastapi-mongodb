@@ -1,3 +1,4 @@
+"""Classes and functions to provide common timezones, profiling etc."""
 import datetime
 import functools
 import time
@@ -12,14 +13,17 @@ __all__ = ["get_utc_timezone", "utc_now", "as_utc", "BaseProfiler"]
 
 @functools.lru_cache()
 def get_utc_timezone() -> zoneinfo.ZoneInfo:
+    """Return UTC zone info."""
     return zoneinfo.ZoneInfo(key="UTC")
 
 
 def utc_now() -> datetime.datetime:
+    """Return current datetime with UTC zone info."""
     return datetime.datetime.now(tz=get_utc_timezone())
 
 
 def as_utc(date_time: datetime.datetime) -> datetime.datetime:
+    """Get datetime object and convert it to datetime with UTC zone info."""
     return date_time.astimezone(tz=get_utc_timezone())
 
 
@@ -41,6 +45,8 @@ class BaseProfiler:
         self._end_time = None
 
     def __call__(self, func):
+        """Call function to work with profiler as decorator."""
+
         @functools.wraps(func)
         def decorated(*args, **kwargs):
             self._start_trace_malloc()
@@ -54,16 +60,20 @@ class BaseProfiler:
         return decorated
 
     def _set_start_time(self):
+        """Set time start point."""
         self._start_time = time.time()
 
     def _set_end_time(self):
+        """Set time end point."""
         self._end_time = time.time()
 
     def __enter__(self):
+        """Start profiling."""
         self._start_trace_malloc()
         self._set_start_time()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """End profiling."""
         self._set_end_time()
         self._print_timing(name="CODE BLOCK")
         self._end_trace_malloc()

@@ -1,3 +1,4 @@
+"""Classes to provide setup logging and colors."""
 import copy
 import enum
 import functools
@@ -299,7 +300,7 @@ def setup_logging(
     accent_color: Union[tuple[int, int, int], str] = Palette.COLORS.CYAN,
     styler: typing.ClassVar[Styler] = Styler,
 ):
-    """Setup logging formatter"""
+    """Class for logging formatter."""
     if file_link_formatter and color_formatter:
         # make PyCharm available link to file where's log occurs
         # example of link creation: "File {pathname}, line {lineno}"

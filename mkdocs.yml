@@ -1,0 +1,97 @@
+site_name: FastAPI❤MongoDB
+site_description: FastAPI❤MongoDB Documentation
+site_author: Kostiantyn Salnykov
+repo_name: fastapi-mongodb
+repo_url: https://github.com/Kostiantyn-Salnykov/fastapi-mongodb
+edit_uri: ""
+theme:
+  icon:
+    repo: fontawesome/brands/git-alt
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    #    - navigation.expand
+    - navigation.indexes
+    #    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    #    - toc.integrate
+    - content.tabs.link
+#    - content.code.annotate
+
+plugins:
+  - search:
+      lang:
+        - ru
+        - en
+  - macros:
+      include_dir: "docs"
+  - i18n:
+      languages:
+        en: English
+        ru: Русский
+      default_language: "en"
+      nav_translations:
+        ru:
+          Main: Главная
+          Setup: Настройка
+
+nav:
+  - Main: index.md
+  - Setup: setup.md
+
+markdown_extensions:
+  - footnotes
+  - pymdownx.tabbed
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.snippets:
+      base_path: "."
+      check_paths: true
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+  - admonition
+  - pymdownx.details
+  - abbr
+  - toc:
+      permalink: ⚓
+      toc_depth: 3
+  - pymdownx.highlight:
+      linenums: true
+      linenums_style: pymdownx.inline
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/KosT-NavySky/fastapi_mongodb
+  alternate:
+    - link: ""
+      name: 🇬🇧 - English
+      lang: en
+    - link: /ru/
+      name: 🇷🇺 - Русский
+      lang: ru
+
+copyright: Copyright &copy; 2020 - 2021 Kostiatyn Salnykov

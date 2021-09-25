@@ -1,3 +1,4 @@
+"""Repository pattern to work with MongoDB."""
 import typing
 from functools import cached_property
 
@@ -10,16 +11,19 @@ from fastapi_mongodb.db import BaseDBManager
 
 class BaseRepository:
     def __init__(self, db_manager: BaseDBManager, db_name: str, col_name: str):
+        """Repository initializer."""
         self._db_manager = db_manager
         self._db_name = db_name
         self._col_name = col_name
 
     @cached_property
     def db(self) -> motor.motor_asyncio.AsyncIOMotorDatabase:
+        """Retrieve database of this repository."""
         return self._db_manager.retrieve_database(name=self._db_name)
 
     @cached_property
     def col(self) -> motor.motor_asyncio.AsyncIOMotorCollection:
+        """Retrieve collection of this repository."""
         return self.db[self._col_name]
 
     async def insert_one(
@@ -29,7 +33,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.InsertOneResult:
-        """insert one document to MongoDB"""
+        """Insert one document to MongoDB."""
         return await self.col.insert_one(document=document, session=session, **kwargs)
 
     async def insert_many(
@@ -40,7 +44,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.InsertManyResult:
-        """insert many documents to MongoDB"""
+        """Insert many documents to MongoDB."""
         return await self.col.insert_many(documents=documents, ordered=ordered, session=session, **kwargs)
 
     async def replace_one(
@@ -52,7 +56,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.UpdateResult:
-        """replace one document in MongoDB"""
+        """Replace one document in MongoDB."""
         return await self.col.replace_one(
             filter=query,
             replacement=replacement,
@@ -70,7 +74,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.UpdateResult:
-        """update one document to MongoDB"""
+        """Update one document to MongoDB."""
         return await self.col.update_one(filter=query, update=update, upsert=upsert, session=session, **kwargs)
 
     async def update_many(
@@ -82,7 +86,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.UpdateResult:
-        """update many documents to MongoDB"""
+        """Update many documents to MongoDB."""
         return await self.col.update_many(filter=query, update=update, upsert=upsert, session=session, **kwargs)
 
     async def delete_one(
@@ -92,7 +96,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.DeleteResult:
-        """delete one document from MongoDB"""
+        """Delete one document from MongoDB."""
         return await self.col.delete_one(filter=query, session=session, **kwargs)
 
     async def delete_many(
@@ -102,7 +106,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> pymongo.results.DeleteResult:
-        """delete many documents from MongoDB"""
+        """Delete many documents from MongoDB."""
         return await self.col.delete_many(filter=query, session=session, **kwargs)
 
     async def find(
@@ -116,7 +120,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> motor.motor_asyncio.AsyncIOMotorCursor:
-        """find documents from MongoDB"""
+        """Find documents from MongoDB."""
         return self.col.find(
             filter=query,
             sort=sort,
@@ -136,7 +140,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ):
-        """find one document from MongoDB"""
+        """Find one document from MongoDB."""
         return await self.col.find_one(filter=query, sort=sort, projection=projection, session=session, **kwargs)
 
     async def find_one_and_delete(
@@ -148,7 +152,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ):
-        """find one and delete a document from MongoDB"""
+        """Find one and delete a document from MongoDB."""
         return await self.col.find_one_and_delete(
             filter=query, projection=projection, sort=sort, session=session, **kwargs
         )
@@ -165,7 +169,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ):
-        """find one and replace a document from MongoDB"""
+        """Find one and replace a document from MongoDB."""
         return await self.col.find_one_and_replace(
             filter=query,
             replacement=replacement,
@@ -188,7 +192,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ):
-        """find one and update document from MongoDB"""
+        """Find one and update document from MongoDB."""
         return await self.col.find_one_and_update(
             filter=query,
             update=update,
@@ -206,11 +210,11 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> int:
-        """count documents in MongoDB collection"""
+        """Count documents in MongoDB collection."""
         return await self.col.count_documents(filter=query, session=session, **kwargs)
 
     async def estimated_document_count(self, **kwargs):
-        """count documents in MongoDB from collection metadata"""
+        """Count documents in MongoDB from collection metadata."""
         return await self.col.estimated_document_count(**kwargs)
 
     async def aggregate(
@@ -220,6 +224,7 @@ class BaseRepository:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> motor.motor_asyncio.AsyncIOMotorCommandCursor:
+        """Run aggregation pipeline against collection."""
         return self.col.aggregate(pipeline=pipeline, session=session, **kwargs)
 
     async def bulk_write(
@@ -238,9 +243,11 @@ class BaseRepository:
         ordered: bool = False,  # default True
         session: pymongo.client_session.ClientSession = None,
     ) -> pymongo.results.BulkWriteResult:
+        """Run multiple operations in one db call."""
         return await self.col.bulk_write(requests=operations, ordered=ordered, session=session)
 
     async def watch(
         self, *, pipeline: list[dict], session: pymongo.client_session.ClientSession = None, **kwargs
     ) -> motor.motor_asyncio.AsyncIOMotorChangeStream:
+        """Blocking client stream to get operations on collection."""
         return self.col.watch(pipeline=pipeline, session=session, **kwargs)

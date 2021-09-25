@@ -7,3 +7,6 @@ venv
 coverate_html_report
 dist
 poetry.lock
+.tox
+.mypy_cache
+site

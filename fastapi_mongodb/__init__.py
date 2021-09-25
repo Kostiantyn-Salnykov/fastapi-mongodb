@@ -1,3 +1,4 @@
+"""fastapi_mongodb library entrypoint."""
 from .config import *
 from .db import *
 from .dependencies import *

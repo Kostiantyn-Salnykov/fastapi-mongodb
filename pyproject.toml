@@ -38,6 +38,13 @@ coverage = "*"
 faker = "*"
 pyupgrade = "^2.25.0"
 bandit = "^1.7.0"
+tox = "^3.24.3"
+pydocstyle = { extras = ["toml"], version = "^6.1.1" }
+mkdocs-material = "^7.3.0"
+pymdown-extensions = "^8.2"
+mkdocs-macros-plugin = "^0.6.0"
+mkdocs-i18n = "^0.4.2"
+mkdocs-static-i18n = "^0.19"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -72,6 +79,19 @@ directory = "coverage_html_report"
 # === Black ===
 [tool.black]
 line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  | dist
+  | .pytest_cache
+  | .tox
+  | mongodb
+  | tests
+  | docs
+  | docs_src
+)/
+'''
 
 # === Isort ===
 [tool.isort]
@@ -82,9 +102,33 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 120
 
+# === Tox ===
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = py39
+
+[testenv]
+whitelist_externals = poetry
+commands =
+    poetry install -v
+    poetry run pytest -v
+"""
+
 # === Pylint ===
 [tool.pylint.messages_control]
 disable = "C0330, C0326"
 
 [tool.pylint.format]
 max-line-length = "120"
+
+# === Bandit ===
+[tool.bandit]
+targets = ["fastapi_mongodb"]
+
+# === Pydocstyle ===
+[tool.pydocstyle]
+match = '(?!test_).*\.py'
+match_dir = "^fastapi_mongodb"
+ignore = "D107,D203"

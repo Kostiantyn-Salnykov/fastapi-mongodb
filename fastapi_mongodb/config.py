@@ -1,3 +1,4 @@
+"""Customized configuration from pydantic to work with models and schemas."""
 import datetime
 
 import bson
@@ -9,7 +10,7 @@ __all__ = ["BaseConfiguration"]
 
 
 class BaseConfiguration(pydantic.BaseConfig):
-    """base configuration class for Models and Schemas"""
+    """base configuration class for Models and Schemas."""
 
     allow_population_by_field_name = True
     use_enum_values = True

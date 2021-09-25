@@ -1,3 +1,4 @@
+"""Pydantic based and custom classes to interact with MongoDB database."""
 import datetime
 import typing
 
@@ -13,22 +14,22 @@ from fastapi_mongodb.config import BaseConfiguration
 from fastapi_mongodb.repositories import BaseRepository
 from fastapi_mongodb.types import OID
 
-__all__ = ["BaseDBModel", "BaseCreatedUpdatedModel", "BaseActiveRecord"]
+__all__ = ["BaseDBModel", "BaseCreatedUpdatedModel", "BaseActiveRecord", "BaseDataMapper"]
 
 
 class BaseDBModel(pydantic.BaseModel):
-    """Class for MongoDB (class data view)"""
+    """Class for MongoDB (class data view)."""
 
     oid: typing.Optional[OID] = pydantic.Field(alias="_id")
 
     class Config(BaseConfiguration):
-        """configuration class"""
+        """configuration class."""
 
     id = property(fget=lambda self: str(self.oid))
 
     @classmethod
     def from_db(cls, *, data: dict):
-        """Method that using in repositories when converting result from MongoDB"""
+        """Convert result from MongoDB to BaseDBModel."""
         if not data:
             return data
         return cls(**data)
@@ -70,7 +71,7 @@ class BaseDBModel(pydantic.BaseModel):
         exclude_defaults: bool = False,
         exclude_none: bool = True,  # pydantic default is False
     ) -> dict:
-        """Preparing data for MongoDB"""
+        """Prepare data for MongoDB."""
         result: dict = self.dict(
             include=include,
             exclude=exclude,
@@ -116,27 +117,36 @@ class BaseCreatedUpdatedModel(BaseDBModel):
 
 
 class BaseActiveRecord:
-    def __init__(self, document: typing.Union[dict, fastapi_mongodb.db.BaseDocument], repository: BaseRepository):
+    def __init__(
+            self,
+            document: typing.Union[dict, fastapi_mongodb.db.BaseDocument],
+            repository: BaseRepository,
+    ):
         self._document = document
         self._repository: BaseRepository = repository
         self._unset_data = {}
 
     def __repr__(self):
+        """Representation of BaseActiveRecord."""
         data = f"oid={doc_id}" if (doc_id := self.id) else "NO DOCUMENT id"
         return f"{self.__class__.__name__}({data})"
 
     def __setitem__(self, key, value):
+        """Set key to BaseActiveRecord."""
         self._document.__setitem__(key, value)
         self._unset_data.pop(key, None)
 
     def __getitem__(self, item):
+        """Retrieve key from BaseActiveRecord."""
         return self._document.__getitem__(item)
 
     def __delitem__(self, key):
+        """Delete key from BaseActiveRecord."""
         self._document.__delitem__(key)
         self._unset_data[key] = None
 
     def __contains__(self, item):
+        """Check if key exists in BaseActiveRecord."""
         if item in self._document.keys():
             return True
         return False
@@ -169,14 +179,20 @@ class BaseActiveRecord:
 
     @classmethod
     async def create(
-        cls, document: dict, repository: BaseRepository, session: pymongo.client_session.ClientSession = None
+            cls,
+            document: dict,
+            repository: BaseRepository,
+            session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         result = await repository.insert_one(document=document, session=session)
         return await cls.read(query={"_id": result.inserted_id}, repository=repository, session=session)
 
     @classmethod
     async def insert(
-        cls, document: dict, repository: BaseRepository, session: pymongo.client_session.ClientSession = None
+            cls,
+            document: dict,
+            repository: BaseRepository,
+            session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         return await cls.create(document=document, repository=repository, session=session)
 
@@ -192,7 +208,10 @@ class BaseActiveRecord:
 
     @classmethod
     async def read(
-        cls, query: dict, repository: BaseRepository, session: pymongo.client_session.ClientSession = None
+            cls,
+            query: dict,
+            repository: BaseRepository,
+            session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         result = await repository.find_one(query=query, session=session)
         return cls(document=result or {}, repository=repository)
@@ -211,12 +230,12 @@ class BaseActiveRecord:
         return await self.refresh(session=session)
 
 
-class NewBaseDataMapper:
+class BaseDataMapper:
     def __init__(
-        self,
-        repository: BaseRepository,
-        model: typing.Type[BaseDBModel],
-        db_session: pymongo.client_session.ClientSession = None,
+            self,
+            repository: BaseRepository,
+            model: typing.Type[BaseDBModel],
+            db_session: pymongo.client_session.ClientSession = None,
     ):
         self._repository = repository
         self._model = model

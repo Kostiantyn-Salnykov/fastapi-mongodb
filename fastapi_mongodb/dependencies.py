@@ -1,3 +1,4 @@
+"""Library code for working with FastAPI dependencies."""
 import fastapi
 import pymongo.client_session
 
