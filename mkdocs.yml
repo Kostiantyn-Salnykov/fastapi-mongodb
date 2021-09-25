@@ -87,10 +87,10 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/KosT-NavySky/fastapi_mongodb
   alternate:
-    - link: ""
+    - link: ./
       name: 🇬🇧 - English
       lang: en
-    - link: /ru/
+    - link: ./ru/
       name: 🇷🇺 - Русский
       lang: ru
 
