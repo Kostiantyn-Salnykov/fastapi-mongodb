@@ -1,4 +1,4 @@
-"""MongoDB base logic"""
+"""MongoDB base logic."""
 import collections.abc
 import datetime
 import decimal
@@ -38,25 +38,32 @@ class BaseDocument(collections.abc.MutableMapping):
         self._data = data or {}
 
     def __len__(self):
+        """Get length of BaseDocument."""
         return len(self._data)
 
     def __getitem__(self, item):
+        """Retrieve key in BaseDocument."""
         return self._data.__getitem__(item)
 
     def __setitem__(self, key, value):
+        """Set key in BaseDocument."""
         return self._data.__setitem__(key, value)
 
     def __delitem__(self, key):
+        """Delete key in BaseDocument."""
         return self._data.__delitem__(key)
 
     def __iter__(self):
+        """Return iterable from BaseDocument."""
         return iter(self._data)
 
     def __repr__(self):
+        """Representation of BaseDocument."""
         data = f"oid={doc_id}" if (doc_id := self.id) else "NO DOCUMENT id"
         return f"{self.__class__.__name__}({data})"
 
     def __eq__(self, other):
+        """Check equality between BaseDocument and dict."""
         if isinstance(other, self.__class__):
             return self.data == other.data
         elif isinstance(other, dict):
@@ -260,7 +267,7 @@ class TopologyLogger(pymongo.monitoring.TopologyListener):
 
 
 class BaseDBManager:
-    """Class hold MongoDB client connection"""
+    """Class hold MongoDB client connection."""
 
     client: pymongo.MongoClient = None
 
@@ -272,19 +279,19 @@ class BaseDBManager:
         self.codec_options = code_options
 
     def retrieve_client(self) -> pymongo.MongoClient:
-        """Retrieve existing MongoDB client or create it (at first call)"""
+        """Retrieve existing MongoDB client or create it (at first call)."""
         if self.__class__.client is None:  # pragma: no cover
             logger.debug(msg="Initialization of MongoDB")
             self.create_client()
         return self.__class__.client
 
     def create_client(self):
-        """Creating MongoDB client"""
+        """Create MongoDB client."""
         logger.debug(msg="Creating MongoDB client")
         self.__class__.client = motor.motor_asyncio.AsyncIOMotorClient(self.db_url)
 
     def delete_client(self):
-        """Closing MongoDB client"""
+        """Close MongoDB client."""
         logger.debug(msg="Disconnecting from MongoDB")
         self.__class__.client.close()
         self.__class__.client = None  # noqa
@@ -306,7 +313,7 @@ class BaseDBManager:
             level="majority"
         ),  # default None
     ) -> pymongo.database.Database:
-        """Retrieve Database by name"""
+        """Retrieve Database by name."""
         client = self.retrieve_client()
         if name is None:  # pragma: no cover
             name = self.default_db_name
@@ -353,7 +360,7 @@ class BaseDBManager:
     async def create_collection(
         self, *, name: str, db_name: str = None, safe: bool = True, session: pymongo.client_session.ClientSession = None
     ) -> pymongo.collection.Collection:
-        """Create collection by name"""
+        """Create collection by name."""
         database = self.retrieve_database(name=db_name)
         try:
             return await database.create_collection(name=name, session=session)
@@ -364,7 +371,7 @@ class BaseDBManager:
     async def delete_collection(
         self, *, name: str, db_name: str = None, session: pymongo.client_session.ClientSession = None
     ):
-        """Delete collection by name"""
+        """Delete collection by name."""
         database = self.retrieve_database(name=db_name)
         await database.drop_collection(name_or_collection=name, session=session)
 
@@ -393,7 +400,7 @@ class BaseDBManager:
         session: pymongo.client_session.ClientSession = None,
         **kwargs,
     ) -> str:
-        """Create an index for collection"""
+        """Create an index for collection."""
         database = self.retrieve_database(name=db_name)
         return await database[col_name].create_index(
             keys=index, name=name, background=background, unique=unique, sparse=sparse, session=session, **kwargs
@@ -407,7 +414,7 @@ class BaseDBManager:
         db_name: str = None,
         session: pymongo.client_session.ClientSession = None,
     ):
-        """Create indexes for collection by list of IndexModel"""
+        """Create indexes for collection by list of IndexModel."""
         database: pymongo.database.Database = self.retrieve_database(name=db_name)
         return await database[col_name].create_indexes(indexes=indexes, session=session)
 
@@ -420,6 +427,7 @@ class BaseDBManager:
         safe: bool = True,
         session: pymongo.client_session.ClientSession = None,
     ):
+        """Remove index for specific collection."""
         database = self.retrieve_database(name=db_name)
         try:
             await database[col_name].drop_index(index_or_name=name, session=session)

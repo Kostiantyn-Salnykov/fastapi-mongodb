@@ -1,10 +1,10 @@
-"""Common apps exceptions"""
+"""Common apps exceptions."""
 
 __all__ = ["ManagerException", "NotFoundManagerException"]
 
 
 class ManagerException(Exception):
-    """Exception that raises in managers"""
+    """Exception that raises in managers."""
 
 
 class NotFoundManagerException(ManagerException):

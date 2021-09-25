@@ -1,3 +1,4 @@
+"""Base classes for schemas (aka serializers) for in/out responses."""
 import datetime
 import typing
 
@@ -8,19 +9,19 @@ from fastapi_mongodb.types import OID
 
 
 class BaseSchema(pydantic.BaseModel):
-    """Class using as a base class for schemas.py"""
+    """Class using as a base class for schemas.py."""
 
     oid: typing.Optional[OID] = pydantic.Field(alias="oid")
 
     class Config(BaseConfiguration):
-        """configuration class"""
+        """Configuration class."""
 
 
 class BaseCreatedUpdatedSchema(BaseSchema):
-    """Append datetime fields for schema"""
+    """Append datetime fields for schema."""
 
     created_at: typing.Optional[datetime.datetime]
     updated_at: typing.Optional[datetime.datetime]
 
     class Config(BaseConfiguration):
-        """configuration class"""
+        """Configuration class."""

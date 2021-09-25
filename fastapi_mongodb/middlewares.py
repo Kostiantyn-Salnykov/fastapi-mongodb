@@ -1,4 +1,4 @@
-"""Application middleware classes"""
+"""Application middleware classes."""
 
 import fastapi
 from starlette.middleware.base import BaseHTTPMiddleware, DispatchFunction, RequestResponseEndpoint
@@ -10,7 +10,7 @@ __all__ = ["DBSessionMiddleware"]
 
 
 class DBSessionMiddleware(BaseHTTPMiddleware):
-    """Append 'db_session' for every request.state"""
+    """Append 'db_session' for every request.state."""
 
     def __init__(self, app: ASGIApp, db_manager: BaseDBManager, dispatch: DispatchFunction = None) -> None:
         self.app = app

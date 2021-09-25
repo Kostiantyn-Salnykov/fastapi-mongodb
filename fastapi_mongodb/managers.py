@@ -1,3 +1,4 @@
+"""Manager implementations for common tasks."""
 import binascii
 import datetime
 import enum
@@ -39,16 +40,19 @@ class TOKEN_ALGORITHMS(str, enum.Enum):
 
 
 class PasswordsManager:
+    """Manager for generating and checking passwords."""
+
     def __init__(self, algorithm: PASSWORD_ALGORITHMS = PASSWORD_ALGORITHMS.SHA512, iterations: int = 524288):
         self._algorithm = algorithm
         self._algorithm_length = ALGORITHMS_LENGTH_MAP[self._algorithm]
         self.iterations = iterations
 
     def __repr__(self):
+        """Representation for PasswordsManager."""
         return f"{self.__class__.__name__}(algorithm={self._algorithm}, iterations={self.iterations})"
 
     def __hash(self, *, salt: str, password: str, encoding: str = "UTF-8") -> str:
-        """Make hash for password N length string (default length from algorithm)"""
+        """Make hash for password N length string (default length from algorithm)."""
         password_hash = hashlib.pbkdf2_hmac(
             hash_name=self._algorithm,
             password=password.encode(encoding=encoding),
@@ -59,30 +63,32 @@ class PasswordsManager:
         return password_hash
 
     def __generate_salt(self) -> str:
-        """Returns N length string (default length from algorithm)"""
+        """Return N length string (default length from algorithm)."""
         method = ALGORITHMS_METHODS_MAP[self._algorithm]
         return method(string=secrets.token_bytes(nbytes=64)).hexdigest()  # noqa
 
     def check_password(self, *, password: str, password_hash: str) -> bool:
-        """Check password and hash"""
+        """Check password and hash."""
         salt = password_hash[: self._algorithm_length]
         stored_password_hash = password_hash[self._algorithm_length :]
         check_password_hash = self.__hash(salt=salt, password=password)
         return check_password_hash == stored_password_hash
 
     def make_password(self, *, password: str) -> str:
-        """Make hash from password"""
+        """Make hash from password."""
         salt: str = self.__generate_salt()
         new_password_hash: str = self.__hash(salt=salt, password=password)
         return salt + new_password_hash
 
 
 class TokensManager:
+    """Manager for generating and checking JWT tokens."""
+
     def __init__(
-        self,
-        secret_key: str,
-        algorithm: TOKEN_ALGORITHMS = TOKEN_ALGORITHMS.HS256,
-        default_token_lifetime: datetime.timedelta = datetime.timedelta(minutes=30),
+            self,
+            secret_key: str,
+            algorithm: TOKEN_ALGORITHMS = TOKEN_ALGORITHMS.HS256,
+            default_token_lifetime: datetime.timedelta = datetime.timedelta(minutes=30),
     ):
         self._secret_key = secret_key
         self._algorithm = algorithm
@@ -98,6 +104,7 @@ class TokensManager:
         nbf: datetime.datetime = None,  # Not before datetime
         iss: str = "",  # Issuer
     ) -> str:
+        """Method for generation of JWT token."""
         if data is None:
             data = {}
         now = fastapi_mongodb.helpers.utc_now()
@@ -120,6 +127,7 @@ class TokensManager:
         leeway: int = 0,  # provide extra time in seconds to validate (iat, exp, nbf)
         convert_to: typing.Type[fastapi_mongodb.schemas.BaseSchema] = None,
     ):
+        """Method for parse and validate JWT token."""
         try:
             payload = jwt.decode(
                 jwt=code,
