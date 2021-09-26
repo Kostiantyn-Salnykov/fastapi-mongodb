@@ -1,3 +1,3 @@
 ```shell
-pip install fastapi-mongodb[pyjwt,orjson]
+pip install fastapi-mongodb[orjson]
 ```
