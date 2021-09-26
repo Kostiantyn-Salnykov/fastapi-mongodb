@@ -2,9 +2,19 @@
 import datetime
 
 import bson
-import orjson
 import pydantic
 import pydantic.json
+
+try:
+    import orjson
+
+    json_dumps = orjson.dumps
+    json_loads = orjson.loads
+except ImportError:
+    import json
+
+    json_dumps = json.dumps
+    json_loads = json.loads
 
 __all__ = ["BaseConfiguration"]
 
@@ -19,5 +29,5 @@ class BaseConfiguration(pydantic.BaseConfig):
         datetime.timedelta: lambda time_delta: pydantic.json.timedelta_isoformat(time_delta),
         bson.ObjectId: str,
     }
-    json_dumps = orjson.dumps
-    json_loads = orjson.loads
+    json_dumps = json_dumps
+    json_loads = json_loads
