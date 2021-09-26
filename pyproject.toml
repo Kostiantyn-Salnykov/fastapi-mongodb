@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-mongodb"
-version = "0.0.1b3"
+version = "0.0.1b4"
 description = "A library that simplifies work and integration with MongoDB for a FastAPI project."
 license = "MIT"
 authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
@@ -24,18 +24,17 @@ classifiers = [
 "Discussions" = "https://github.com/Kostiantyn-Salnykov/fastapi-mongodb/discussions"
 
 [tool.poetry.extras]
-pyjwt = ["pyjwt"]
 orjson = ["orjson"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "*"
-motor = "*"
-click = "*"
-pymongo = { extras = ["tls", "srv"], version = "*" }
-pydantic = { extras = ["email", "dotenv"], version = "*" }
-pyjwt = { optional = true, version = "*" }
-orjson = { optional = true, version = "*" }
+fastapi = "^0.68.1"
+motor = "^2.5.1"
+click = "^8.0.1"
+pymongo = { extras = ["tls", "srv"], version = "^3.12.0" }
+pydantic = { extras = ["email", "dotenv"], version = "^1.8.2" }
+pyjwt = "^2.1.0"
+orjson = { optional = true, version = "^3.6.3" }
 
 [tool.poetry.dev-dependencies]
 uvicorn = "*"
