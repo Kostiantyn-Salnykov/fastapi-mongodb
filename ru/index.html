@@ -312,6 +312,26 @@
     Установка
   </a>
   
+    <nav class="md-nav" aria-label="Установка">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    Базовая установка
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    Полная установка
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -374,6 +394,26 @@
     Установка
   </a>
   
+    <nav class="md-nav" aria-label="Установка">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    Базовая установка
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    Полная установка
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -406,7 +446,12 @@
 <details class="info"><summary>Info</summary><p>Когда ключевые моменты в разработке будут выполнены, я займусь документацией.</p>
 </details>
 <h2 id="_2">Установка<a class="headerlink" href="#_2" title="Permanent link">⚓</a></h2>
+<h3 id="_3">Базовая установка<a class="headerlink" href="#_3" title="Permanent link">⚓</a></h3>
 <table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pip install fastapi-mongodb
+</code></pre></div>
+</td></tr></table>
+<h3 id="_4">Полная установка<a class="headerlink" href="#_4" title="Permanent link">⚓</a></h3>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pip install fastapi-mongodb<span class="o">[</span>pyjwt,orjson<span class="o">]</span>
 </code></pre></div>
 </td></tr></table>
 <details class="info"><summary>Зависимости</summary><ul>
@@ -415,8 +460,8 @@
 <li><a href="https://motor.readthedocs.io/en/stable/index.html">motor</a></li>
 <li><a href="https://pymongo.readthedocs.io/en/stable/">pymongo</a></li>
 <li><a href="https://pydantic-docs.helpmanual.io/">pydantic</a></li>
-<li><a href="https://github.com/ijl/orjson">orjson</a></li>
-<li><a href="https://pyjwt.readthedocs.io/en/stable/">pyjwt</a></li>
+<li><a href="https://github.com/ijl/orjson">orjson</a> (не обязательная к установке, используется для BaseConfiguration и Pydantic <strong>Config</strong> параметров: <em>json_dumps</em>, <em>json_loads</em>)</li>
+<li><a href="https://pyjwt.readthedocs.io/en/stable/">pyjwt</a> (не обязательная к установке, используется в TokensManager)</li>
 </ul>
 </details>
                 

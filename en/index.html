@@ -312,6 +312,26 @@
     Installation
   </a>
   
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-installation" class="md-nav__link">
+    Basic installation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-installation" class="md-nav__link">
+    Full installation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -374,6 +394,26 @@
     Installation
   </a>
   
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-installation" class="md-nav__link">
+    Basic installation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-installation" class="md-nav__link">
+    Full installation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -406,7 +446,12 @@
 <details class="info"><summary>Info</summary><p>When the key points in development are completed, I will take care of the documentation.</p>
 </details>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">⚓</a></h2>
+<h3 id="basic-installation">Basic installation<a class="headerlink" href="#basic-installation" title="Permanent link">⚓</a></h3>
 <table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pip install fastapi-mongodb
+</code></pre></div>
+</td></tr></table>
+<h3 id="full-installation">Full installation<a class="headerlink" href="#full-installation" title="Permanent link">⚓</a></h3>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div class="highlight"><pre><span></span><code>pip install fastapi-mongodb<span class="o">[</span>pyjwt,orjson<span class="o">]</span>
 </code></pre></div>
 </td></tr></table>
 <details class="info"><summary>Dependencies</summary><ul>
@@ -415,8 +460,8 @@
 <li><a href="https://motor.readthedocs.io/en/stable/index.html">motor</a></li>
 <li><a href="https://pymongo.readthedocs.io/en/stable/">pymongo</a></li>
 <li><a href="https://pydantic-docs.helpmanual.io/">pydantic</a></li>
-<li><a href="https://github.com/ijl/orjson">orjson</a></li>
-<li><a href="https://pyjwt.readthedocs.io/en/stable/">pyjwt</a></li>
+<li><a href="https://github.com/ijl/orjson">orjson</a> (optional, need for BaseConfiguration and Pydantic's <strong>Config</strong> options: <em>json_dumps</em>, <em>json_loads</em>)</li>
+<li><a href="https://pyjwt.readthedocs.io/en/stable/">pyjwt</a> (optional, need for TokensManager)</li>
 </ul>
 </details>
                 
