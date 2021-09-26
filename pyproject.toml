@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-mongodb"
-version = "0.0.1b2"
+version = "0.0.1b3"
 description = "A library that simplifies work and integration with MongoDB for a FastAPI project."
 license = "MIT"
 authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
@@ -31,6 +31,7 @@ orjson = ["orjson"]
 python = "^3.9"
 fastapi = "*"
 motor = "*"
+click = "*"
 pymongo = { extras = ["tls", "srv"], version = "*" }
 pydantic = { extras = ["email", "dotenv"], version = "*" }
 pyjwt = { optional = true, version = "*" }
