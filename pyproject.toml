@@ -1,26 +1,40 @@
 [tool.poetry]
 name = "fastapi-mongodb"
-version = "0.0.1b1"
-description = "Snippets for FastAPI to work with MongoDB by Motor driver."
+version = "0.0.1b2"
+description = "A library that simplifies work and integration with MongoDB for a FastAPI project."
 license = "MIT"
 authors = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
+maintainers = ["Kostiantyn Salnykov <kostiantyn.salnykov@gmail.com>"]
 readme = "README.md"
-homepage = ""
-repository = "https://github.com/KosT-NavySky/fastapi_mongodb"
-documentation = ""
+homepage = "https://kostiantyn-salnykov.github.io/fastapi-mongodb/"
+repository = "https://github.com/Kostiantyn-Salnykov/fastapi-mongodb/"
+documentation = "https://kostiantyn-salnykov.github.io/fastapi-mongodb/"
 keywords = ["fastapi", "mongodb", "pydantic", "motor", "pymongo", "orjson", "pyjwt"]
 packages = [
-    {"include" = "fastapi_mongodb"},
+    { "include" = "fastapi_mongodb" },
 ]
+classifiers = [
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.urls]
+"Issues" = "https://github.com/Kostiantyn-Salnykov/fastapi-mongodb/issues"
+"Discussions" = "https://github.com/Kostiantyn-Salnykov/fastapi-mongodb/discussions"
+
+[tool.poetry.extras]
+pyjwt = ["pyjwt"]
+orjson = ["orjson"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 fastapi = "*"
 motor = "*"
-pymongo = {extras = ["tls", "srv"], version = "*"}
-pydantic = {extras = ["email", "dotenv"], version = "*"}
-pyjwt = "*"
-orjson = "*"
+pymongo = { extras = ["tls", "srv"], version = "*" }
+pydantic = { extras = ["email", "dotenv"], version = "*" }
+pyjwt = { optional = true, version = "*" }
+orjson = { optional = true, version = "*" }
 
 [tool.poetry.dev-dependencies]
 uvicorn = "*"

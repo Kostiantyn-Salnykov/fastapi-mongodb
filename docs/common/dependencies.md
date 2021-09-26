@@ -3,5 +3,6 @@
 - [motor](https://motor.readthedocs.io/en/stable/index.html)
 - [pymongo](https://pymongo.readthedocs.io/en/stable/)
 - [pydantic](https://pydantic-docs.helpmanual.io/)
-- [orjson](https://github.com/ijl/orjson)
-- [pyjwt](https://pyjwt.readthedocs.io/en/stable/)
+- [orjson](https://github.com/ijl/orjson) (optional, need for BaseConfiguration and Pydantic's **Config** options: *
+  json_dumps*, *json_loads*)
+- [pyjwt](https://pyjwt.readthedocs.io/en/stable/) (optional, need for TokensManager)
