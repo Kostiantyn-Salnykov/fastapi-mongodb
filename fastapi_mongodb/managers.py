@@ -6,14 +6,11 @@ import hashlib
 import secrets
 import typing
 
+import jwt
+
 import fastapi_mongodb.exceptions
 import fastapi_mongodb.helpers
 import fastapi_mongodb.schemas
-
-try:
-    import jwt
-except ImportError:
-    jwt = None
 
 __all__ = ["PASSWORD_ALGORITHMS", "PasswordsManager", "TokensManager"]
 
@@ -88,13 +85,11 @@ class TokensManager:
     """Manager for generating and checking JWT tokens."""
 
     def __init__(
-            self,
-            secret_key: str,
-            algorithm: TOKEN_ALGORITHMS = TOKEN_ALGORITHMS.HS256,
-            default_token_lifetime: datetime.timedelta = datetime.timedelta(minutes=30),
+        self,
+        secret_key: str,
+        algorithm: TOKEN_ALGORITHMS = TOKEN_ALGORITHMS.HS256,
+        default_token_lifetime: datetime.timedelta = datetime.timedelta(minutes=30),
     ):
-        if jwt is None:
-            raise ImportError("pyjwt must be installed to use TokensManager.")
         self._secret_key = secret_key
         self._algorithm = algorithm
         self.default_token_lifetime = default_token_lifetime

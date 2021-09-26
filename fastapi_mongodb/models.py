@@ -118,9 +118,9 @@ class BaseCreatedUpdatedModel(BaseDBModel):
 
 class BaseActiveRecord:
     def __init__(
-            self,
-            document: typing.Union[dict, fastapi_mongodb.db.BaseDocument],
-            repository: BaseRepository,
+        self,
+        document: typing.Union[dict, fastapi_mongodb.db.BaseDocument],
+        repository: BaseRepository,
     ):
         self._document = document
         self._repository: BaseRepository = repository
@@ -179,20 +179,20 @@ class BaseActiveRecord:
 
     @classmethod
     async def create(
-            cls,
-            document: dict,
-            repository: BaseRepository,
-            session: pymongo.client_session.ClientSession = None,
+        cls,
+        document: dict,
+        repository: BaseRepository,
+        session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         result = await repository.insert_one(document=document, session=session)
         return await cls.read(query={"_id": result.inserted_id}, repository=repository, session=session)
 
     @classmethod
     async def insert(
-            cls,
-            document: dict,
-            repository: BaseRepository,
-            session: pymongo.client_session.ClientSession = None,
+        cls,
+        document: dict,
+        repository: BaseRepository,
+        session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         return await cls.create(document=document, repository=repository, session=session)
 
@@ -208,10 +208,10 @@ class BaseActiveRecord:
 
     @classmethod
     async def read(
-            cls,
-            query: dict,
-            repository: BaseRepository,
-            session: pymongo.client_session.ClientSession = None,
+        cls,
+        query: dict,
+        repository: BaseRepository,
+        session: pymongo.client_session.ClientSession = None,
     ) -> "BaseActiveRecord":
         result = await repository.find_one(query=query, session=session)
         return cls(document=result or {}, repository=repository)
@@ -232,10 +232,10 @@ class BaseActiveRecord:
 
 class BaseDataMapper:
     def __init__(
-            self,
-            repository: BaseRepository,
-            model: typing.Type[BaseDBModel],
-            db_session: pymongo.client_session.ClientSession = None,
+        self,
+        repository: BaseRepository,
+        model: typing.Type[BaseDBModel],
+        db_session: pymongo.client_session.ClientSession = None,
     ):
         self._repository = repository
         self._model = model
