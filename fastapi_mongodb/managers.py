@@ -1,5 +1,6 @@
 """Manager implementations for common tasks."""
 import binascii
+import copy
 import datetime
 import enum
 import hashlib
@@ -12,7 +13,7 @@ import fastapi_mongodb.exceptions
 import fastapi_mongodb.helpers
 import fastapi_mongodb.schemas
 
-__all__ = ["PASSWORD_ALGORITHMS", "PasswordsManager", "TokensManager"]
+__all__ = ["PASSWORD_ALGORITHMS", "TOKEN_ALGORITHMS", "PasswordsManager", "TokensManager"]
 
 
 class PASSWORD_ALGORITHMS(str, enum.Enum):
@@ -42,7 +43,7 @@ class TOKEN_ALGORITHMS(str, enum.Enum):
 class PasswordsManager:
     """Manager for generating and checking passwords."""
 
-    def __init__(self, algorithm: PASSWORD_ALGORITHMS = PASSWORD_ALGORITHMS.SHA512, iterations: int = 524288):
+    def __init__(self, *, algorithm: PASSWORD_ALGORITHMS = PASSWORD_ALGORITHMS.SHA512, iterations: int = 524288):
         self._algorithm = algorithm
         self._algorithm_length = ALGORITHMS_LENGTH_MAP[self._algorithm]
         self.iterations = iterations
@@ -86,6 +87,7 @@ class TokensManager:
 
     def __init__(
         self,
+        *,
         secret_key: str,
         algorithm: TOKEN_ALGORITHMS = TOKEN_ALGORITHMS.HS256,
         default_token_lifetime: datetime.timedelta = datetime.timedelta(minutes=30),
@@ -114,7 +116,7 @@ class TokensManager:
             exp = now + self.default_token_lifetime
         if nbf is None:
             nbf = now
-        payload = data.copy()
+        payload = copy.deepcopy(data)
         payload |= {"iat": iat, "aud": aud, "exp": exp, "nbf": nbf, "iss": iss}
         return jwt.encode(payload=payload, key=self._secret_key, algorithm=self._algorithm)
 

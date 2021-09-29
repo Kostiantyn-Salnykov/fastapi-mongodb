@@ -52,10 +52,12 @@ plugins:
         ru:
           Main: Главная
           Setup: Настройка
+          Managers: Менеджеры
 
 nav:
   - Main: index.md
   - Setup: setup.md
+  - Managers: managers.md
 
 markdown_extensions:
   - footnotes
